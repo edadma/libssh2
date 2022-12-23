@@ -21,3 +21,4 @@ object LibSSH2:
   def libssh2_session_set_blocking(session: session_tp, blocking: CInt): Unit = extern // 862
   // libssh2_session_handshake // 577
   def libssh2_knownhost_init(session: session_tp): knownhosts_tp = extern // 959
+  def libssh2_knownhost_readfile(hosts: knownhosts_tp, filename: CString, typ: CInt): CInt = extern // 1134
