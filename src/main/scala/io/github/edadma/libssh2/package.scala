@@ -2,7 +2,8 @@ package io.github.edadma.libssh2
 
 import extern.{LibSSH2 => lib}
 
-implicit class Session(val surface: lib.session_tp)
+implicit class Session(val session: lib.session_tp):
+  def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
 
 def init(flags: Int): Int = lib.libssh2_init(flags)
 def exit(): Unit = lib.libssh2_exit()

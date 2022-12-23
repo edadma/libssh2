@@ -16,3 +16,4 @@ object LibSSH2:
       my_realloc: Ptr[CChar],
       abstrct: Ptr[CChar],
   ): session_tp = extern // 562
+  def libssh2_session_set_blocking(session: session_tp, blocking: CInt): Unit = extern // 862
