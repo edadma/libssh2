@@ -1,7 +1,9 @@
 package io.github.edadma.libssh2.extern
 
-import scala.scalanative.unsafe._
-import scala.scalanative.unsigned._
+import io.github.edadma.libssh2.extern.LibSSH2.session_tp
+
+import scala.scalanative.unsafe.*
+import scala.scalanative.unsigned.*
 
 @link("ssh2")
 @extern
@@ -64,3 +66,5 @@ object LibSSH2:
       message: CString,
       message_len: CUnsignedInt,
   ): channel_tp = extern // 727
+def libssh2_session_last_error(session: session_tp, errmsg: Ptr[CString], errmsg_len: Ptr[CInt], want_buf: CInt): CInt =
+  extern // 600
