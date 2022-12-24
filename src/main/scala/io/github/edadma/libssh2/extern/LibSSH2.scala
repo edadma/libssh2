@@ -36,3 +36,11 @@ object LibSSH2:
       knownhost: Ptr[knownhost_tp],
   ): CInt = extern // 1081
   def libssh2_knownhost_free(hosts: knownhosts_tp): Unit = extern // 1105
+  def libssh2_userauth_password_ex(
+      session: session_tp,
+      username: CString,
+      username_len: CUnsignedInt,
+      password: CString,
+      password_len: CUnsignedInt,
+      passwd_change_cb: Ptr[CChar],
+  ): CInt = extern // 619

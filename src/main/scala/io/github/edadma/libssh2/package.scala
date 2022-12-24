@@ -13,6 +13,16 @@ implicit class Session(val session: lib.session_tp):
     val key = fromCString(lib.libssh2_session_hostkey(session, len, typ))
 
     (key, (!len).toLong, !typ)
+  def userauthPassword(username: String, password: String): Int = Zone(implicit z =>
+    lib.libssh2_userauth_password_ex(
+      session,
+      toCString(username),
+      username.length.asInstanceOf[CUnsignedInt],
+      toCString(password),
+      password.length.asInstanceOf[CUnsignedInt],
+      null,
+    ),
+  )
 
 implicit class Knownhost(val hosts: lib.knownhosts_tp):
   def readfile(filename: String, typ: KnownhostFile): Int =
