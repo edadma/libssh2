@@ -3,6 +3,10 @@ package io.github.edadma.libssh2
 import extern.LibSSH2 as lib
 
 import scala.scalanative.unsafe._
+import scala.scalanative.unsigned._
+
+val LIBSSH2_CHANNEL_WINDOW_DEFAULT: CUnsignedInt = (2 * 1024 * 1024).toUInt
+val LIBSSH2_CHANNEL_PACKET_DEFAULT: CUnsignedInt = 32768.toUInt
 
 implicit class Session(val session: lib.session_tp):
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
@@ -34,6 +38,17 @@ implicit class Session(val session: lib.session_tp):
         toCString(passphrase),
       ),
     )
+  def channelOpen(): Channel = lib.libssh2_channel_open_ex(
+    session,
+    c"session",
+    7.toUInt,
+    LIBSSH2_CHANNEL_WINDOW_DEFAULT,
+    LIBSSH2_CHANNEL_PACKET_DEFAULT,
+    null,
+    0.toUInt,
+  )
+
+implicit class Channel(val hosts: lib.channel_tp)
 
 implicit class Knownhost(val hosts: lib.knownhosts_tp):
   def readfile(filename: String, typ: KnownhostFile): Int =

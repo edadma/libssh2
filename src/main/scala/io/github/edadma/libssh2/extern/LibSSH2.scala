@@ -1,6 +1,7 @@
 package io.github.edadma.libssh2.extern
 
 import scala.scalanative.unsafe._
+import scala.scalanative.unsigned._
 
 @link("ssh2")
 @extern
@@ -11,6 +12,8 @@ object LibSSH2:
   type knownhosts_tp = Ptr[knownhosts_t]
   type knownhost_t = CStruct0
   type knownhost_tp = Ptr[knownhost_t]
+  type channel_t = CStruct0
+  type channel_tp = Ptr[channel_t]
 
   def libssh2_init(flags: CInt): CInt = extern // 530
   def libssh2_exit(): Unit = extern // 537
@@ -52,3 +55,12 @@ object LibSSH2:
       privatekey: CString,
       passphrase: CString,
   ): CInt = extern // 633
+  def libssh2_channel_open_ex(
+      session: session_tp,
+      channel_type: CString,
+      channel_type_len: CUnsignedInt,
+      window_size: CUnsignedInt,
+      packet_size: CUnsignedInt,
+      message: CString,
+      message_len: CUnsignedInt,
+  ): channel_tp = extern // 727
