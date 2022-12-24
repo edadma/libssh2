@@ -19,6 +19,7 @@ implicit class Knownhost(val hosts: lib.knownhosts_tp):
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))
   def writefile(filename: String, typ: KnownhostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_writefile(hosts, toCString(filename), typ.value))
+  def free(): Unit = lib.libssh2_knownhost_free(hosts) // 1105
 
 implicit class KnownhostFile(val value: CInt) extends AnyVal
 

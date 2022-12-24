@@ -9,6 +9,8 @@ object LibSSH2:
   type session_tp = Ptr[session_t]
   type knownhosts_t = CStruct0
   type knownhosts_tp = Ptr[knownhosts_t]
+  type knownhost_t = CStruct0
+  type knownhost_tp = Ptr[knownhost_t]
 
   def libssh2_init(flags: CInt): CInt = extern // 530
   def libssh2_exit(): Unit = extern // 537
@@ -24,3 +26,13 @@ object LibSSH2:
   def libssh2_knownhost_readfile(hosts: knownhosts_tp, filename: CString, typ: CInt): CInt = extern // 1134
   def libssh2_knownhost_writefile(hosts: knownhosts_tp, filename: CString, typ: CInt): CInt = extern // 1165
   def libssh2_session_hostkey(session: session_tp, len: Ptr[CSize], typ: Ptr[CInt]): CString = extern // 592
+  def libssh2_knownhost_checkp(
+      hosts: knownhosts_tp,
+      host: CString,
+      port: CInt,
+      key: CString,
+      keylen: CSize,
+      typemask: CInt,
+      knownhost: Ptr[knownhost_tp],
+  ): CInt = extern // 1081
+  def libssh2_knownhost_free(hosts: knownhosts_tp): Unit = extern // 1105
