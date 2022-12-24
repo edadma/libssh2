@@ -66,5 +66,10 @@ object LibSSH2:
       message: CString,
       message_len: CUnsignedInt,
   ): channel_tp = extern // 727
-def libssh2_session_last_error(session: session_tp, errmsg: Ptr[CString], errmsg_len: Ptr[CInt], want_buf: CInt): CInt =
-  extern // 600
+  def libssh2_session_last_error(
+      session: session_tp,
+      errmsg: Ptr[CString],
+      errmsg_len: Ptr[CInt],
+      want_buf: CInt,
+  ): CInt =
+    extern // 600
