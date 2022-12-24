@@ -23,6 +23,17 @@ implicit class Session(val session: lib.session_tp):
       null,
     ),
   )
+  def userauthPublickeyFromFile(username: String, publickey: String, privatekey: String, passphrase: String): Int =
+    Zone(implicit z =>
+      lib.libssh2_userauth_publickey_fromfile_ex(
+        session,
+        toCString(username),
+        username.length.asInstanceOf[CUnsignedInt],
+        toCString(publickey),
+        toCString(privatekey),
+        toCString(passphrase),
+      ),
+    )
 
 implicit class Knownhost(val hosts: lib.knownhosts_tp):
   def readfile(filename: String, typ: KnownhostFile): Int =

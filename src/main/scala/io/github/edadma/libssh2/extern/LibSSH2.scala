@@ -44,3 +44,11 @@ object LibSSH2:
       password_len: CUnsignedInt,
       passwd_change_cb: Ptr[CChar],
   ): CInt = extern // 619
+  def libssh2_userauth_publickey_fromfile_ex(
+      session: session_tp,
+      username: CString,
+      username_len: CUnsignedInt,
+      publickey: CString,
+      privatekey: CString,
+      passphrase: CString,
+  ): CInt = extern // 633
