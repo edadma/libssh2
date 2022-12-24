@@ -23,3 +23,4 @@ object LibSSH2:
   def libssh2_knownhost_init(session: session_tp): knownhosts_tp = extern // 959
   def libssh2_knownhost_readfile(hosts: knownhosts_tp, filename: CString, typ: CInt): CInt = extern // 1134
   def libssh2_knownhost_writefile(hosts: knownhosts_tp, filename: CString, typ: CInt): CInt = extern // 1165
+  def libssh2_session_hostkey(session: session_tp, len: Ptr[CSize], typ: Ptr[CInt]): CString = extern // 592

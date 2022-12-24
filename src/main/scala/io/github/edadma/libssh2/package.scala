@@ -7,6 +7,12 @@ import scala.scalanative.unsafe._
 implicit class Session(val session: lib.session_tp):
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
   def knownhostInit: Knownhost = lib.libssh2_knownhost_init(session)
+  def hostkey: (String, Long, Int) =
+    val len = stackalloc[CSize]()
+    val typ = stackalloc[CInt]()
+    val key = fromCString(lib.libssh2_session_hostkey(session, len, typ))
+
+    (key, (!len).toLong, !typ)
 
 implicit class Knownhost(val hosts: lib.knownhosts_tp):
   def readfile(filename: String, typ: KnownhostFile): Int =
