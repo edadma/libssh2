@@ -83,3 +83,4 @@ object LibSSH2:
   ): CInt = extern // 800
   def libssh2_channel_read_ex(channel: channel_tp, stream_id: CInt, buf: CString, buflen: CSize): CSSize = extern // 816
   def libssh2_channel_close(channel: channel_tp): CInt = extern // 912
+  def libssh2_channel_get_exit_status(channel: channel_tp): CInt = extern // 901
