@@ -73,3 +73,4 @@ object LibSSH2:
       want_buf: CInt,
   ): CInt =
     extern // 600
+  def libssh2_session_block_directions(session: session_tp): CInt = extern // 607

@@ -47,12 +47,13 @@ implicit class Session(val session: lib.session_tp):
     null,
     0.toUInt,
   )
-  def libssh2_session_last_error: String =
+  def lastError: String =
     val errmsg = stackalloc[CString]()
     val errmsg_len = stackalloc[CInt]()
 
     lib.libssh2_session_last_error(session, errmsg, errmsg_len, 0)
     fromCString(!errmsg)
+  def blockDirections: Int = lib.libssh2_session_block_directions(session)
 
 implicit class Channel(val hosts: lib.channel_tp)
 
