@@ -16,7 +16,7 @@ val LIBSSH2_SESSION_BLOCK_OUTBOUND = 0x0002
 
 val LIBSSH2_ERROR_EAGAIN = -37
 
-implicit class Session(val session: lib.session_tp):
+implicit class Session(val session: lib.session_tp) extends AnyVal:
   def waitsocket(socket_fd: Int): Int =
     val timeout = stackalloc[timeval]()
     val fd = stackalloc[fd_set]()
@@ -65,6 +65,7 @@ implicit class Session(val session: lib.session_tp):
         toCString(passphrase),
       ),
     )
+
   def channelOpen(): Channel = lib.libssh2_channel_open_ex(
     session,
     c"session",
@@ -82,13 +83,15 @@ implicit class Session(val session: lib.session_tp):
     fromCString(!errmsg)
   def blockDirections: Int = lib.libssh2_session_block_directions(session)
 
-implicit class Channel(val channel: lib.channel_tp):
+implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   def exec(command: String): Int =
     Zone(implicit z =>
       lib.libssh2_channel_process_startup(channel, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
-  def read: String =
+
+  def read(session: Session, sock: Int): String =
     var bytecount = 0
+    val buf = new StringBuilder
 
     def read(): Unit =
       var rc: CSSize = 1.asInstanceOf[CSSize]
@@ -100,15 +103,23 @@ implicit class Channel(val channel: lib.channel_tp):
         if rc > 0 then
           bytecount += rc.toInt
           Console.err.println("We read:")
-          for i <- 0 until rc.toInt do Console.err.print(buffer(i).toChar)
+
+          for i <- 0 until rc.toInt do
+            buffer += buffer(i).toChar
+            Console.err.print(buffer(i).toChar)
+
           Console.err.println()
         else if rc != LIBSSH2_ERROR_EAGAIN then Console.err.println(s"libssh2_channel_read returned $rc")
       end while
 
-      if rc == LIBSSH2_ERROR_EAGAIN then waitsocket()
-    read()
+      if rc == LIBSSH2_ERROR_EAGAIN then session.waitsocket(sock)
 
-implicit class Knownhost(val hosts: lib.knownhosts_tp):
+    read()
+    buf.toString
+  end read
+end Channel
+
+implicit class Knownhost(val hosts: lib.knownhosts_tp) extends AnyVal:
   def readfile(filename: String, typ: KnownhostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))
   def writefile(filename: String, typ: KnownhostFile): Int =
