@@ -4,11 +4,36 @@ import extern.LibSSH2 as lib
 
 import scala.scalanative.unsafe._
 import scala.scalanative.unsigned._
+import scala.scalanative.posix.sys.time._
+import scala.scalanative.posix.sys.select._
+import scalanative.posix.sys.timeOps._
 
 val LIBSSH2_CHANNEL_WINDOW_DEFAULT: CUnsignedInt = (2 * 1024 * 1024).toUInt
 val LIBSSH2_CHANNEL_PACKET_DEFAULT: CUnsignedInt = 32768.toUInt
 
+val LIBSSH2_SESSION_BLOCK_INBOUND = 0x0001
+val LIBSSH2_SESSION_BLOCK_OUTBOUND = 0x0002
+
 implicit class Session(val session: lib.session_tp):
+  def waitsocket(socket_fd: Int): Int =
+    val timeout = stackalloc[timeval]()
+    val fd = stackalloc[fd_set]()
+    var writefd: Ptr[fd_set] = null
+    var readfd: Ptr[fd_set] = null
+
+    timeout.tv_sec = 10
+    timeout.tv_usec = 0
+    FD_ZERO(fd)
+    FD_SET(socket_fd, fd)
+
+    /* now make sure we wait in the correct direction */
+    val dir = session.blockDirections
+
+    if (dir & LIBSSH2_SESSION_BLOCK_INBOUND) != 0 then readfd = fd
+    if (dir & LIBSSH2_SESSION_BLOCK_OUTBOUND) != 0 then writefd = fd
+    select(socket_fd + 1, readfd, writefd, null, timeout)
+  end waitsocket
+
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
   def knownhostInit: Knownhost = lib.libssh2_knownhost_init(session)
   def hostkey: (String, Long, Int) =
