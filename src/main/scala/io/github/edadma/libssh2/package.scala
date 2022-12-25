@@ -118,6 +118,14 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   end read
   def close: Int = lib.libssh2_channel_close(channel)
   def getExitStatus: Int = lib.libssh2_channel_get_exit_status(channel)
+  def getExitSignal: (Int, String) =
+    val exitsignal = stackalloc[CString]()
+
+    !exitsignal = c"none"
+
+    val rc = lib.libssh2_channel_get_exit_signal(channel, exitsignal, null, null, null, null, null)
+
+    (rc, fromCString(!exitsignal))
 end Channel
 
 implicit class Knownhost(val hosts: lib.knownhosts_tp) extends AnyVal:
