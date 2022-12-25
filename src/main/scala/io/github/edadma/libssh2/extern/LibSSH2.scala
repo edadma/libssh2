@@ -93,3 +93,4 @@ object LibSSH2:
       langtag: Ptr[CString],
       langtag_len: Ptr[CSize],
   ): CInt = extern // 902
+  def libssh2_channel_free(channel: channel_tp): CInt = extern // 914
