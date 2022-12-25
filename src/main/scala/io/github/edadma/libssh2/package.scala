@@ -65,7 +65,6 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
         toCString(passphrase),
       ),
     )
-
   def channelOpen(): Channel = lib.libssh2_channel_open_ex(
     session,
     c"session",
@@ -82,6 +81,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
     lib.libssh2_session_last_error(session, errmsg, errmsg_len, 0)
     fromCString(!errmsg)
   def blockDirections: Int = lib.libssh2_session_block_directions(session)
+  def handshake(sock: Int): Int = lib.libssh2_session_handshake(session, sock)
 
 implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   def exec(command: String): Int =
