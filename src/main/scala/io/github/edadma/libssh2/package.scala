@@ -16,6 +16,8 @@ val LIBSSH2_SESSION_BLOCK_OUTBOUND = 0x0002
 
 val LIBSSH2_ERROR_EAGAIN = -37
 
+val SSH_DISCONNECT_BY_APPLICATION = 11
+
 implicit class Session(val session: lib.session_tp) extends AnyVal:
   def waitsocket(socket_fd: Int): Int =
     val timeout = stackalloc[timeval]()
@@ -82,6 +84,9 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
     fromCString(!errmsg)
   def blockDirections: Int = lib.libssh2_session_block_directions(session)
   def handshake(sock: Int): Int = lib.libssh2_session_handshake(session, sock)
+  def disconnect(description: String): Int = Zone(implicit z =>
+    lib.libssh2_session_disconnect_ex(session, SSH_DISCONNECT_BY_APPLICATION, toCString(description), c""),
+  )
 
 implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   def exec(command: String): Int =
