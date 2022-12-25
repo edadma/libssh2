@@ -14,6 +14,8 @@ val LIBSSH2_CHANNEL_PACKET_DEFAULT: CUnsignedInt = 32768.toUInt
 val LIBSSH2_SESSION_BLOCK_INBOUND = 0x0001
 val LIBSSH2_SESSION_BLOCK_OUTBOUND = 0x0002
 
+val LIBSSH2_ERROR_EAGAIN = -37
+
 implicit class Session(val session: lib.session_tp):
   def waitsocket(socket_fd: Int): Int =
     val timeout = stackalloc[timeval]()
@@ -85,6 +87,9 @@ implicit class Channel(val channel: lib.channel_tp):
     Zone(implicit z =>
       lib.libssh2_channel_process_startup(channel, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
+  def read: String =
+    lib.libssh2_channel_read_ex(channel)
+
 implicit class Knownhost(val hosts: lib.knownhosts_tp):
   def readfile(filename: String, typ: KnownhostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))

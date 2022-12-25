@@ -81,3 +81,4 @@ object LibSSH2:
       message: CString,
       message_len: CUnsignedInt,
   ): CInt = extern // 800
+  def libssh2_channel_read_ex(channel: channel_tp, stream_id: CInt, buf: CString, buflen: CSize): CSSize = extern // 816
