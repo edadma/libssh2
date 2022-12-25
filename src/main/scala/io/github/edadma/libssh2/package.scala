@@ -88,7 +88,25 @@ implicit class Channel(val channel: lib.channel_tp):
       lib.libssh2_channel_process_startup(channel, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
   def read: String =
-    lib.libssh2_channel_read_ex(channel)
+    var bytecount = 0
+
+    def read(): Unit =
+      var rc: CSSize = 1.asInstanceOf[CSSize]
+      var buffer = stackalloc[CChar](0x4000)
+
+      while rc > 0 do
+        rc = lib.libssh2_channel_read_ex(channel, 0, buffer, 0x4000.toUInt)
+
+        if rc > 0 then
+          bytecount += rc.toInt
+          Console.err.println("We read:")
+          for i <- 0 until rc.toInt do Console.err.print(buffer(i).toChar)
+          Console.err.println()
+        else if rc != LIBSSH2_ERROR_EAGAIN then Console.err.println(s"libssh2_channel_read returned $rc")
+      end while
+
+      if rc == LIBSSH2_ERROR_EAGAIN then waitsocket()
+    read()
 
 implicit class Knownhost(val hosts: lib.knownhosts_tp):
   def readfile(filename: String, typ: KnownhostFile): Int =
