@@ -88,7 +88,6 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
     Zone(implicit z =>
       lib.libssh2_channel_process_startup(channel, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
-
   def read(session: Session, sock: Int): String =
     var bytecount = 0
     val buf = new StringBuilder
@@ -117,6 +116,7 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
     read()
     buf.toString
   end read
+  def close: Int = lib.libssh2_channel_close(channel)
 end Channel
 
 implicit class Knownhost(val hosts: lib.knownhosts_tp) extends AnyVal:
