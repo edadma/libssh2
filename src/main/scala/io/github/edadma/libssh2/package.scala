@@ -80,8 +80,11 @@ implicit class Session(val session: lib.session_tp):
     fromCString(!errmsg)
   def blockDirections: Int = lib.libssh2_session_block_directions(session)
 
-implicit class Channel(val hosts: lib.channel_tp)
-
+implicit class Channel(val channel: lib.channel_tp):
+  def exec(command: String): Int =
+    Zone(implicit z =>
+      lib.libssh2_channel_process_startup(channel, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
+    )
 implicit class Knownhost(val hosts: lib.knownhosts_tp):
   def readfile(filename: String, typ: KnownhostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))

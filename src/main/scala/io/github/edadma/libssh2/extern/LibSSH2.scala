@@ -74,3 +74,10 @@ object LibSSH2:
   ): CInt =
     extern // 600
   def libssh2_session_block_directions(session: session_tp): CInt = extern // 607
+  def libssh2_channel_process_startup(
+      channel: channel_tp,
+      request: CString,
+      request_len: CUnsignedInt,
+      message: CString,
+      message_len: CUnsignedInt,
+  ): CInt = extern // 800
