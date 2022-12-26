@@ -150,6 +150,13 @@ implicit class KnownHost(val hosts: lib.knownhosts_tp) extends AnyVal:
   def writeFile(filename: String, typ: KnownhostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_writefile(hosts, toCString(filename), typ.value))
   def free(): Unit = lib.libssh2_knownhost_free(hosts) // 1105
+  def checkp(host: String, port: Int, key: Seq[Byte], typemask: Int): Int = Zone { implicit z =>
+    val keyarr = stackalloc[Byte](key.length.toUInt)
+
+    for i <- key.indices do keyarr(i) = key(i)
+
+    lib.libssh2_knownhost_checkp(hosts, toCString(host), port, keyarr, key.length, typemask, )
+  }
 
 implicit class KnownhostFile(val value: CInt) extends AnyVal
 

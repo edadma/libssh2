@@ -53,5 +53,5 @@ package io.github.edadma.libssh2
       sys.exit(1)
     }
 
-  println(fingerprint)
+
   println("done")

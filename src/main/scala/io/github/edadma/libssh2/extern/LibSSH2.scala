@@ -26,7 +26,7 @@ object LibSSH2:
       abstrct: Ptr[CChar],
   ): session_tp = extern // 562
   def libssh2_session_set_blocking(session: session_tp, blocking: CInt): Unit = extern // 862
-  def libssh2_session_handshake(session: session_tp, sock: CInt): CInt = extern // 577
+  // libssh2_session_handshake // 577
   def libssh2_knownhost_init(session: session_tp): knownhosts_tp = extern // 959
   def libssh2_knownhost_readfile(hosts: knownhosts_tp, filename: CString, typ: CInt): CInt = extern // 1134
   def libssh2_knownhost_writefile(hosts: knownhosts_tp, filename: CString, typ: CInt): CInt = extern // 1165
@@ -35,7 +35,7 @@ object LibSSH2:
       hosts: knownhosts_tp,
       host: CString,
       port: CInt,
-      key: CString,
+      key: Ptr[Byte],
       keylen: CSize,
       typemask: CInt,
       knownhost: Ptr[knownhost_tp],
@@ -82,17 +82,3 @@ object LibSSH2:
       message_len: CUnsignedInt,
   ): CInt = extern // 800
   def libssh2_channel_read_ex(channel: channel_tp, stream_id: CInt, buf: CString, buflen: CSize): CSSize = extern // 816
-  def libssh2_channel_close(channel: channel_tp): CInt = extern // 912
-  def libssh2_channel_get_exit_status(channel: channel_tp): CInt = extern // 901
-  def libssh2_channel_get_exit_signal(
-      channel: channel_tp,
-      exitsignal: Ptr[CString],
-      exitsignal_len: Ptr[CSize],
-      errmsg: Ptr[CString],
-      errmsg_len: Ptr[CSize],
-      langtag: Ptr[CString],
-      langtag_len: Ptr[CSize],
-  ): CInt = extern // 902
-  def libssh2_channel_free(channel: channel_tp): CInt = extern // 914
-  def libssh2_session_disconnect_ex(session: session_tp, reason: CInt, description: CString, lang: CString): CInt =
-    extern // 579
