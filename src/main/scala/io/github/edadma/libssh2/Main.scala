@@ -47,7 +47,11 @@ package io.github.edadma.libssh2
   nh.readFile("known_hosts", KnownhostFile.OPENSSH)
   nh.writeFile("dumpfile", KnownhostFile.OPENSSH)
 
-  val fingerprint = session.hostKey
+  val fingerprint =
+    session.hostKey getOrElse {
+      Console.err.println("hostKey() failed")
+      sys.exit(1)
+    }
 
-  println(fingerprint._1.length)
+  println(fingerprint)
   println("done")

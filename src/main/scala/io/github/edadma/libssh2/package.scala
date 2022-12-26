@@ -41,15 +41,18 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
 
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
   def knownHostInit: KnownHost = lib.libssh2_knownhost_init(session)
-  def hostKey: (ArraySeq[Byte], Long, Int) =
+  def hostKey: Option[(ArraySeq[Byte], Int)] =
     val len = stackalloc[CSize]()
     val typ = stackalloc[CInt]()
     val key = lib.libssh2_session_hostkey(session, len, typ)
-    val keyarr = new Array[Byte]((!len).toInt)
 
-    for i <- 0 until (!len).toInt do keyarr(i) = key(i)
+    if key eq null then None
+    else
+      val keyarr = new Array[Byte]((!len).toInt)
 
-    (keyarr to ArraySeq, (!len).toLong, !typ)
+      for i <- 0 until (!len).toInt do keyarr(i) = key(i)
+
+      Some((keyarr to ArraySeq, !typ))
   def userAuthPassword(username: String, password: String): Int = Zone(implicit z =>
     lib.libssh2_userauth_password_ex(
       session,
