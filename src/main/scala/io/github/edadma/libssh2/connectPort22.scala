@@ -22,9 +22,6 @@ def connectPort22(hostname: String): Int = Zone { implicit z =>
   sin.sin_port = htons(22.toUShort)
   sin.sin_addr.s_addr = hostaddr
 
-  if (connect(sock, sin.asInstanceOf[Ptr[sockaddr]], sizeof[sockaddr_in].toUInt) != 0) {
-    Console.err.println("failed to connect!")
-    -1
-  } else
-    sock
+  if connect(sock, sin.asInstanceOf[Ptr[sockaddr]], sizeof[sockaddr_in].toUInt) != 0 then -1
+  else sock
 }

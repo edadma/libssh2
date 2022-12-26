@@ -2,11 +2,12 @@ package io.github.edadma.libssh2
 
 import extern.LibSSH2 as lib
 
-import scala.scalanative.unsafe._
-import scala.scalanative.unsigned._
-import scala.scalanative.posix.sys.time._
-import scala.scalanative.posix.sys.select._
-import scalanative.posix.sys.timeOps._
+import scala.collection.immutable.ArraySeq
+import scala.scalanative.unsafe.*
+import scala.scalanative.unsigned.*
+import scala.scalanative.posix.sys.time.*
+import scala.scalanative.posix.sys.select.*
+import scalanative.posix.sys.timeOps.*
 
 val LIBSSH2_CHANNEL_WINDOW_DEFAULT: CUnsignedInt = (2 * 1024 * 1024).toUInt
 val LIBSSH2_CHANNEL_PACKET_DEFAULT: CUnsignedInt = 32768.toUInt
@@ -15,6 +16,9 @@ val LIBSSH2_SESSION_BLOCK_INBOUND = 0x0001
 val LIBSSH2_SESSION_BLOCK_OUTBOUND = 0x0002
 
 val LIBSSH2_ERROR_EAGAIN = -37
+
+val LIBSSH2_KNOWNHOST_TYPE_PLAIN = 1
+val LIBSSH2_KNOWNHOST_KEYENC_RAW = 1 << 16
 
 val SSH_DISCONNECT_BY_APPLICATION = 11
 
@@ -39,14 +43,20 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   end waitsocket
 
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
-  def knownhostInit: KnownHosts = lib.libssh2_knownhost_init(session)
-  def hostkey: (String, Long, Int) =
+  def knownHostInit: KnownHost = lib.libssh2_knownhost_init(session)
+  def hostKey: Option[(ArraySeq[Byte], Int)] =
     val len = stackalloc[CSize]()
     val typ = stackalloc[CInt]()
-    val key = fromCString(lib.libssh2_session_hostkey(session, len, typ))
+    val key = lib.libssh2_session_hostkey(session, len, typ)
 
-    (key, (!len).toLong, !typ)
-  def userauthPassword(username: String, password: String): Int = Zone(implicit z =>
+    if key eq null then None
+    else
+      val keyarr = new Array[Byte]((!len).toInt)
+
+      for i <- 0 until (!len).toInt do keyarr(i) = key(i)
+
+      Some((keyarr to ArraySeq, !typ))
+  def userAuthPassword(username: String, password: String): Int = Zone(implicit z =>
     lib.libssh2_userauth_password_ex(
       session,
       toCString(username),
@@ -134,12 +144,19 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   def free: Int = lib.libssh2_channel_free(channel)
 end Channel
 
-implicit class KnownHosts(val hosts: lib.knownhosts_tp) extends AnyVal:
-  def readfile(filename: String, typ: KnownHostFile): Int =
+implicit class KnownHost(val hosts: lib.knownhosts_tp) extends AnyVal:
+  def readFile(filename: String, typ: KnownHostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))
-  def writefile(filename: String, typ: KnownHostFile): Int =
+  def writeFile(filename: String, typ: KnownHostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_writefile(hosts, toCString(filename), typ.value))
   def free(): Unit = lib.libssh2_knownhost_free(hosts) // 1105
+  def checkp(host: String, port: Int, key: Seq[Byte], typemask: Int): Int = Zone { implicit z =>
+    val keyarr = stackalloc[Byte](key.length.toUInt)
+
+    for i <- key.indices do keyarr(i) = key(i)
+
+//    lib.libssh2_knownhost_checkp(hosts, toCString(host), port, keyarr, key.length, typemask, )
+  }
 
 implicit class KnownHostFile(val value: CInt) extends AnyVal
 
