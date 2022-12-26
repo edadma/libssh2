@@ -8,7 +8,7 @@ import scala.scalanative.posix.netinet.in.sockaddr_in
 import scala.scalanative.posix.netinet.inOps._
 import scala.scalanative.posix.inttypes.uint16_t
 
-def connectSSH(hostname: String): Int = Zone { implicit z =>
+def connectPort22(hostname: String): Int = Zone { implicit z =>
   val sin = stackalloc[sockaddr_in]()
   val hostaddr = inet_addr(toCString(hostname))
 
@@ -18,8 +18,8 @@ def connectSSH(hostname: String): Int = Zone { implicit z =>
    */
   val sock = socket(AF_INET, SOCK_STREAM, 0)
 
-  sin.sin_family = AF_INET.asInstanceOf[sa_family_t]
-  sin.sin_port = htons(22.asInstanceOf[uint16_t])
+  sin.sin_family = AF_INET.toUShort
+  sin.sin_port = htons(22.toUShort)
   sin.sin_addr.s_addr = hostaddr
 
   if (connect(sock, sin.asInstanceOf[Ptr[sockaddr]], sizeof[sockaddr_in].toUInt) != 0) {

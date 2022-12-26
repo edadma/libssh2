@@ -11,10 +11,12 @@ package io.github.edadma.libssh2
   if args.length > 2 then password = args(2)
   if args.length > 3 then commandline = args(3)
 
-  var rc = init(0)
+  val rc = init(0)
 
   if rc != 0 then
     Console.err.println(s"libssh2 initialization failed ($rc)")
     sys.exit(1)
+
+  val sock = connectPort22(hostname)
 
   println("done")
