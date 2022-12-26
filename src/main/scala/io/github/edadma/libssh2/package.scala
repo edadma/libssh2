@@ -17,6 +17,9 @@ val LIBSSH2_SESSION_BLOCK_OUTBOUND = 0x0002
 
 val LIBSSH2_ERROR_EAGAIN = -37
 
+val LIBSSH2_KNOWNHOST_TYPE_PLAIN = 1
+val LIBSSH2_KNOWNHOST_KEYENC_RAW = 1 << 16
+
 val SSH_DISCONNECT_BY_APPLICATION = 11
 
 implicit class Session(val session: lib.session_tp) extends AnyVal:
