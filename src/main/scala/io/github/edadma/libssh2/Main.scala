@@ -11,12 +11,31 @@ package io.github.edadma.libssh2
   if args.length > 2 then password = args(2)
   if args.length > 3 then commandline = args(3)
 
-  val rc = init(0)
+  var rc = init(0)
 
   if rc != 0 then
     Console.err.println(s"libssh2 initialization failed ($rc)")
     sys.exit(1)
 
-  val sock = connectPort22(hostname)
+  val sock =
+    connectPort22(hostname) match
+      case -1 =>
+        Console.err.println("failed to connect!")
+        sys.exit(1)
+      case s => s
+
+  val session = sessionInit
+
+  if session.session eq null then
+    Console.err.println("failed to initialize a session")
+    sys.exit(1)
+
+  session.setBlocking(false)
+
+  while ({ rc = session.handshake(sock); rc } == LIBSSH2_ERROR_EAGAIN) {}
+
+  if rc != 0 then
+    Console.err.println(s"Failure establishing SSH session: $rc")
+    sys.exit(1)
 
   println("done")
