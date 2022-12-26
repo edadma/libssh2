@@ -17,4 +17,4 @@ package io.github.edadma.libssh2
     Console.err.println(s"libssh2 initialization failed ($rc)")
     sys.exit(1)
 
-
+  println("done")
