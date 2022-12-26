@@ -39,7 +39,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   end waitsocket
 
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
-  def knownhostInit: Knownhost = lib.libssh2_knownhost_init(session)
+  def knownhostInit: KnownHosts = lib.libssh2_knownhost_init(session)
   def hostkey: (String, Long, Int) =
     val len = stackalloc[CSize]()
     val typ = stackalloc[CInt]()
@@ -134,17 +134,17 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   def free: Int = lib.libssh2_channel_free(channel)
 end Channel
 
-implicit class Knownhost(val hosts: lib.knownhosts_tp) extends AnyVal:
-  def readfile(filename: String, typ: KnownhostFile): Int =
+implicit class KnownHosts(val hosts: lib.knownhosts_tp) extends AnyVal:
+  def readfile(filename: String, typ: KnownHostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))
-  def writefile(filename: String, typ: KnownhostFile): Int =
+  def writefile(filename: String, typ: KnownHostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_writefile(hosts, toCString(filename), typ.value))
   def free(): Unit = lib.libssh2_knownhost_free(hosts) // 1105
 
-implicit class KnownhostFile(val value: CInt) extends AnyVal
+implicit class KnownHostFile(val value: CInt) extends AnyVal
 
-object KnownhostFile {
-  final val OPENSSH = new KnownhostFile(1)
+object KnownHostFile {
+  final val OPENSSH = new KnownHostFile(1)
 }
 
 def init(flags: Int): Int = lib.libssh2_init(flags)
