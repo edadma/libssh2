@@ -38,4 +38,10 @@ package io.github.edadma.libssh2
     Console.err.println(s"Failure establishing SSH session: $rc")
     sys.exit(1)
 
+  val nh = session.knownhostInit
+
+  if nh.hosts eq null then
+    Console.err.println("failed to knownhost init")
+    sys.exit(1)
+
   println("done")
