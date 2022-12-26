@@ -135,9 +135,9 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
 end Channel
 
 implicit class Knownhost(val hosts: lib.knownhosts_tp) extends AnyVal:
-  def readfile(filename: String, typ: KnownhostFile): Int =
+  def readFile(filename: String, typ: KnownhostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))
-  def writefile(filename: String, typ: KnownhostFile): Int =
+  def writeFile(filename: String, typ: KnownhostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_writefile(hosts, toCString(filename), typ.value))
   def free(): Unit = lib.libssh2_knownhost_free(hosts) // 1105
 

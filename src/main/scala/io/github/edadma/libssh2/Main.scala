@@ -44,4 +44,7 @@ package io.github.edadma.libssh2
     Console.err.println("failed to knownhost init")
     sys.exit(1)
 
+  nh.readFile("known_hosts", KnownhostFile.OPENSSH)
+  nh.writeFile("dumpfile", KnownhostFile.OPENSSH)
+
   println("done")
