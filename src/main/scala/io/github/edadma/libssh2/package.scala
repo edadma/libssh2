@@ -2,11 +2,12 @@ package io.github.edadma.libssh2
 
 import extern.LibSSH2 as lib
 
-import scala.scalanative.unsafe._
-import scala.scalanative.unsigned._
-import scala.scalanative.posix.sys.time._
-import scala.scalanative.posix.sys.select._
-import scalanative.posix.sys.timeOps._
+import scala.collection.immutable.ArraySeq
+import scala.scalanative.unsafe.*
+import scala.scalanative.unsigned.*
+import scala.scalanative.posix.sys.time.*
+import scala.scalanative.posix.sys.select.*
+import scalanative.posix.sys.timeOps.*
 
 val LIBSSH2_CHANNEL_WINDOW_DEFAULT: CUnsignedInt = (2 * 1024 * 1024).toUInt
 val LIBSSH2_CHANNEL_PACKET_DEFAULT: CUnsignedInt = 32768.toUInt
@@ -39,14 +40,17 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   end waitsocket
 
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
-  def knownhostInit: Knownhost = lib.libssh2_knownhost_init(session)
-  def hostkey: (String, Long, Int) =
+  def knownHostInit: KnownHost = lib.libssh2_knownhost_init(session)
+  def hostKey: (ArraySeq[Byte], Long, Int) =
     val len = stackalloc[CSize]()
     val typ = stackalloc[CInt]()
-    val key = fromCString(lib.libssh2_session_hostkey(session, len, typ))
+    val key = lib.libssh2_session_hostkey(session, len, typ)
+    val keyarr = new Array[Byte]((!len).toInt)
 
-    (key, (!len).toLong, !typ)
-  def userauthPassword(username: String, password: String): Int = Zone(implicit z =>
+    for i <- 0 until (!len).toInt do keyarr(i) = key(i)
+
+    (keyarr to ArraySeq, (!len).toLong, !typ)
+  def userAuthPassword(username: String, password: String): Int = Zone(implicit z =>
     lib.libssh2_userauth_password_ex(
       session,
       toCString(username),
@@ -134,7 +138,7 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   def free: Int = lib.libssh2_channel_free(channel)
 end Channel
 
-implicit class Knownhost(val hosts: lib.knownhosts_tp) extends AnyVal:
+implicit class KnownHost(val hosts: lib.knownhosts_tp) extends AnyVal:
   def readFile(filename: String, typ: KnownhostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))
   def writeFile(filename: String, typ: KnownhostFile): Int =

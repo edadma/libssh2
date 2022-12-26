@@ -38,7 +38,7 @@ package io.github.edadma.libssh2
     Console.err.println(s"Failure establishing SSH session: $rc")
     sys.exit(1)
 
-  val nh = session.knownhostInit
+  val nh = session.knownHostInit
 
   if nh.hosts eq null then
     Console.err.println("failed to knownhost init")
@@ -47,4 +47,7 @@ package io.github.edadma.libssh2
   nh.readFile("known_hosts", KnownhostFile.OPENSSH)
   nh.writeFile("dumpfile", KnownhostFile.OPENSSH)
 
+  val fingerprint = session.hostKey
+
+  println(fingerprint._1.length)
   println("done")
