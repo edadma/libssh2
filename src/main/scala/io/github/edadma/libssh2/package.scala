@@ -82,7 +82,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
         toCString(passphrase),
       ),
     )
-  def channelOpen(): Channel = lib.libssh2_channel_open_ex(
+  def openSession(): Channel = lib.libssh2_channel_open_ex(
     session,
     c"session",
     7.toUInt,
@@ -91,12 +91,12 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
     null,
     0.toUInt,
   )
-  def lastError: String =
+  def lastError: (Int, String) =
     val errmsg = stackalloc[CString]()
     val errmsg_len = stackalloc[CInt]()
+    val rc = lib.libssh2_session_last_error(session, errmsg, errmsg_len, 0)
 
-    lib.libssh2_session_last_error(session, errmsg, errmsg_len, 0)
-    fromCString(!errmsg)
+    (rc, fromCString(!errmsg))
   def blockDirections: Int = lib.libssh2_session_block_directions(session)
   def handshake(sock: Int): Int = lib.libssh2_session_handshake(session, sock)
   def disconnect(description: String): Int = Zone(implicit z =>
@@ -104,10 +104,10 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   )
   def free(): Unit = lib.libssh2_session_free(session)
 
-implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
+implicit class Channel(val ptr: lib.channel_tp) extends AnyVal:
   def exec(command: String): Int =
     Zone(implicit z =>
-      lib.libssh2_channel_process_startup(channel, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
+      lib.libssh2_channel_process_startup(ptr, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
   def read(session: Session, sock: Int): String =
     var bytecount = 0
@@ -118,7 +118,7 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
       var buffer = stackalloc[CChar](0x4000)
 
       while rc > 0 do
-        rc = lib.libssh2_channel_read_ex(channel, 0, buffer, 0x4000.toUInt)
+        rc = lib.libssh2_channel_read_ex(ptr, 0, buffer, 0x4000.toUInt)
 
         if rc > 0 then
           bytecount += rc.toInt
@@ -137,17 +137,17 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
     read()
     buf.toString
   end read
-  def close: Int = lib.libssh2_channel_close(channel)
-  def getExitStatus: Int = lib.libssh2_channel_get_exit_status(channel)
+  def close: Int = lib.libssh2_channel_close(ptr)
+  def getExitStatus: Int = lib.libssh2_channel_get_exit_status(ptr)
   def getExitSignal: (Int, String) =
     val exitsignal = stackalloc[CString]()
 
     !exitsignal = c"none"
 
-    val rc = lib.libssh2_channel_get_exit_signal(channel, exitsignal, null, null, null, null, null)
+    val rc = lib.libssh2_channel_get_exit_signal(ptr, exitsignal, null, null, null, null, null)
 
     (rc, fromCString(!exitsignal))
-  def free: Int = lib.libssh2_channel_free(channel)
+  def free: Int = lib.libssh2_channel_free(ptr)
 end Channel
 
 implicit class KnownHost(val host: lib.knownhost_tp) extends AnyVal:

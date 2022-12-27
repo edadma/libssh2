@@ -26,6 +26,12 @@ package io.github.edadma.libssh2
 
   val session = sessionInit
 
+  def shutdown(): Unit =
+    session.disconnect("Normal Shutdown, Thank you for playing")
+    session.free()
+    scala.scalanative.posix.unistd.close(sock)
+    Console.err.println("All done")
+
   if session.session eq null then
     Console.err.println("failed to initialize a session")
     sys.exit(1)
@@ -84,10 +90,13 @@ package io.github.edadma.libssh2
     Console.err.println("Authentication by public key failed")
     shutdown()
 
-  shutdown()
+  var channel: Channel = new Channel(null)
 
-  def shutdown(): Unit =
-    session.disconnect("Normal Shutdown, Thank you for playing")
-    session.free()
-    scala.scalanative.posix.unistd.close(sock)
-    Console.err.println("All done")
+  while { channel = session.openSession(); channel.ptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN do {}
+
+  if channel.ptr == null then
+    Console.err.println("Channel could not be opened")
+    shutdown()
+
+  session.openSession()
+  shutdown()
