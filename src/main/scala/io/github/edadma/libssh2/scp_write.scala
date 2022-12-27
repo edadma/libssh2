@@ -2,7 +2,7 @@ package io.github.edadma.libssh2
 
 import java.nio.file.{Files, Paths}
 
-@main def ssh2_write(args: String*): Unit =
+@main def scp_write(args: String*): Unit =
   var hostname = "127.0.0.1"
   var username = "testuser"
   var password = "easypassword"
