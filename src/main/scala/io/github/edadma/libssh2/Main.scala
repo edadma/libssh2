@@ -70,6 +70,19 @@ package io.github.edadma.libssh2
     if rc != 0 then
       Console.err.println("Authentication by password failed")
       shutdown()
+  else
+    while {
+        rc = session.userauthPublickeyFromFile(
+          username,
+          s"/home/$username/.ssh/id_rsa.pub",
+          s"/home/$username/.ssh/id_rsa",
+          password,
+        ); rc
+      } == LIBSSH2_ERROR_EAGAIN
+    do {}
+  if rc != 0 then
+    Console.err.println("Authentication by public key failed")
+    shutdown()
 
   shutdown()
 
