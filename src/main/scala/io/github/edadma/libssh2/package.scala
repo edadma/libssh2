@@ -8,6 +8,7 @@ import scala.scalanative.unsafe.*
 import scala.scalanative.unsigned.*
 import scala.scalanative.posix.sys.time.*
 import scala.scalanative.posix.sys.select.*
+import scala.scalanative.posix.sys.stat.stat
 import scalanative.posix.sys.timeOps.*
 
 val LIBSSH2_CHANNEL_WINDOW_DEFAULT: CUnsignedInt = (2 * 1024 * 1024).toUInt
@@ -27,6 +28,12 @@ val LIBSSH2_KNOWNHOST_CHECK_MATCH = 0
 val LIBSSH2_KNOWNHOST_CHECK_MISMATCH = 1
 val LIBSSH2_KNOWNHOST_CHECK_NOTFOUND = 2
 val LIBSSH2_KNOWNHOST_CHECK_FAILURE = 3
+
+def permissions(path: String): Int =
+  val info = stackalloc[stat]()
+
+  Zone(implicit z => stat(toCString(path), info))
+  info._13.toInt & 0x1ff
 
 implicit class Session(val session: lib.session_tp) extends AnyVal:
   def waitsocket(socket_fd: Int): Int =

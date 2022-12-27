@@ -5,13 +5,13 @@ package io.github.edadma.libssh2
   var username = "testuser"
   var password = "easypassword"
   var localfile = "../main.c"
-  var sftppath = "/tmp/TEST"
+  var scppath = "/tmp/TEST"
 
   if args.nonEmpty then hostname = args(0)
   if args.length > 1 then username = args(1)
   if args.length > 2 then password = args(2)
   if args.length > 3 then localfile = args(3)
-  if args.length > 4 then sftppath = args(4)
+  if args.length > 4 then scppath = args(4)
 
   var rc = init(0)
 
