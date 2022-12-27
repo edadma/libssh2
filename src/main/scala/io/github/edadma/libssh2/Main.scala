@@ -71,8 +71,10 @@ package io.github.edadma.libssh2
       Console.err.println("Authentication by password failed")
       shutdown()
 
-  println("done")
+  shutdown()
 
   def shutdown(): Unit =
     session.disconnect("Normal Shutdown, Thank you for playing")
     session.free()
+    scala.scalanative.posix.unistd.close(sock)
+    Console.err.println("All done")

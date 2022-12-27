@@ -65,9 +65,9 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
     lib.libssh2_userauth_password_ex(
       session,
       toCString(username),
-      username.length.asInstanceOf[CUnsignedInt],
+      username.length.toUInt,
       toCString(password),
-      password.length.asInstanceOf[CUnsignedInt],
+      password.length.toUInt,
       null,
     ),
   )
