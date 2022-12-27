@@ -1,6 +1,6 @@
 package io.github.edadma.libssh2
 
-@main def ssh2_exec(args: String*): Unit =
+@main def sftp_mkdir(args: String*): Unit =
   var hostname = "127.0.0.1"
   var commandline = "uptime"
   var username = "testuser"
