@@ -154,7 +154,7 @@ implicit class KnownHost(val hosts: lib.knownhosts_tp) extends AnyVal:
     val keyarr = stackalloc[Byte](key.length.toUInt)
 
     for i <- key.indices do keyarr(i) = key(i)
-
+    0
 //    lib.libssh2_knownhost_checkp(hosts, toCString(host), port, keyarr, key.length, typemask, )
   }
 
