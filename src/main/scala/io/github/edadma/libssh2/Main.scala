@@ -47,10 +47,21 @@ package io.github.edadma.libssh2
   nh.readFile("known_hosts", KnownHostFile.OPENSSH)
   nh.writeFile("dumpfile", KnownHostFile.OPENSSH)
 
-  val fingerprint =
+  val (fingerprint, _) =
     session.hostKey getOrElse {
       Console.err.println("hostKey() failed")
       sys.exit(1)
     }
+
+  val (check, host) = nh.checkp(
+    hostname,
+    22,
+    fingerprint,
+    LIBSSH2_KNOWNHOST_TYPE_PLAIN | LIBSSH2_KNOWNHOST_KEYENC_RAW,
+  )
+
+  Console.err.println(
+    s"Host check: $check, key: ${if check <= LIBSSH2_KNOWNHOST_CHECK_MISMATCH then host.key else "<none>"}",
+  )
 
   println("done")

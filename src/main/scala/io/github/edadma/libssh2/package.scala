@@ -22,6 +22,11 @@ val LIBSSH2_KNOWNHOST_KEYENC_RAW = 1 << 16
 
 val SSH_DISCONNECT_BY_APPLICATION = 11
 
+val LIBSSH2_KNOWNHOST_CHECK_MATCH = 0
+val LIBSSH2_KNOWNHOST_CHECK_MISMATCH = 1
+val LIBSSH2_KNOWNHOST_CHECK_NOTFOUND = 2
+val LIBSSH2_KNOWNHOST_CHECK_FAILURE = 3
+
 implicit class Session(val session: lib.session_tp) extends AnyVal:
   def waitsocket(socket_fd: Int): Int =
     val timeout = stackalloc[timeval]()
