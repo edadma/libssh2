@@ -12,7 +12,7 @@ object LibSSH2:
   type session_tp = Ptr[session_t]
   type knownhosts_t = CStruct0
   type knownhosts_tp = Ptr[knownhosts_t]
-  type knownhost_t = CStruct5[CUnsignedInt, Ptr[Byte], Ptr[Byte], Ptr[Byte], CInt]
+  type knownhost_t = CStruct5[CUnsignedInt, Ptr[Byte], CString, CString, CInt]
   type knownhost_tp = Ptr[knownhost_t]
   type channel_t = CStruct0
   type channel_tp = Ptr[channel_t]

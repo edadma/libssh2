@@ -43,7 +43,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   end waitsocket
 
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
-  def knownHostInit: KnownHost = lib.libssh2_knownhost_init(session)
+  def knownHostInit: KnownHosts = lib.libssh2_knownhost_init(session)
   def hostKey: Option[(ArraySeq[Byte], Int)] =
     val len = stackalloc[CSize]()
     val typ = stackalloc[CInt]()
@@ -144,19 +144,27 @@ implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   def free: Int = lib.libssh2_channel_free(channel)
 end Channel
 
-implicit class KnownHost(val hosts: lib.knownhosts_tp) extends AnyVal:
+implicit class KnownHost(val host: lib.knownhost_tp) extends AnyVal:
+  def magic: Int = host._1.toInt
+  def name: String = fromCString(host._3)
+  def key: String = fromCString(host._4)
+  def typemask: Int = host._5
+
+implicit class KnownHosts(val hosts: lib.knownhosts_tp) extends AnyVal:
   def readFile(filename: String, typ: KnownHostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))
   def writeFile(filename: String, typ: KnownHostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_writefile(hosts, toCString(filename), typ.value))
   def free(): Unit = lib.libssh2_knownhost_free(hosts) // 1105
-  def checkp(host: String, port: Int, key: Seq[Byte], typemask: Int): Int = Zone { implicit z =>
+  def checkp(host: String, port: Int, key: Seq[Byte], typemask: Int): (Int, KnownHost) = Zone { implicit z =>
     val keyarr = stackalloc[Byte](key.length.toUInt)
-    val host = stackalloc[lib.knownhost_t]()
+    val knownhost = stackalloc[lib.knownhost_tp]()
 
     for i <- key.indices do keyarr(i) = key(i)
 
-    lib.libssh2_knownhost_checkp(hosts, toCString(host), port, keyarr, key.length, typemask, host)
+    val rc = lib.libssh2_knownhost_checkp(hosts, toCString(host), port, keyarr, key.length.toUInt, typemask, knownhost)
+
+    (rc, !knownhost)
   }
 
 implicit class KnownHostFile(val value: CInt) extends AnyVal
