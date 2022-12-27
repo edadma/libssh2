@@ -107,4 +107,19 @@ package io.github.edadma.libssh2
 
   Console.err.println("We read:")
   Console.err.println(channel.read(session, sock))
+
+  var exitcode = 127
+
+  while { rc = session.userAuthPassword(username, password); rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
+
+  val exitsignal: String =
+    if rc == 0 then
+      exitcode = channel.getExitStatus
+      channel.getExitSignal._2
+    else null
+
+  if exitsignal ne null then Console.err.println(s"Got signal: $exitsignal")
+  else Console.err.println(s"EXIT: $exitcode")
+
+  channel.free
   shutdown()

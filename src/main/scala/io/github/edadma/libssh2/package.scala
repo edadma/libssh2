@@ -123,7 +123,6 @@ implicit class Channel(val ptr: lib.channel_tp) extends AnyVal:
 
         if rc > 0 then for i <- 0 until rc.toInt do buf += buffer(i).toChar
         else if rc != LIBSSH2_ERROR_EAGAIN && rc != 0 then Console.err.println(s"libssh2_channel_read returned $rc")
-      end while
 
       if rc == LIBSSH2_ERROR_EAGAIN then
         session.waitsocket(sock)
