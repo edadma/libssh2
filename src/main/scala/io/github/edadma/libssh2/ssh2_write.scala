@@ -1,10 +1,12 @@
 package io.github.edadma.libssh2
 
+import java.nio.file.{Files, Paths}
+
 @main def ssh2_write(args: String*): Unit =
   var hostname = "127.0.0.1"
   var username = "testuser"
   var password = "easypassword"
-  var localfile = "../main.c"
+  var localfile = "build.sbt"
   var scppath = "/tmp/TEST"
 
   if args.nonEmpty then hostname = args(0)
@@ -19,6 +21,8 @@ package io.github.edadma.libssh2
     Console.err.println(s"libssh2 initialization failed ($rc)")
     sys.exit(1)
 
+  val data = Files.readAllBytes(Paths.get(localfile))
+  val perm = permissions(localfile)
   val sock =
     connectPort22(hostname) match
       case -1 =>
