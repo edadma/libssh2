@@ -92,11 +92,17 @@ package io.github.edadma.libssh2
 
   var channel: Channel = new Channel(null)
 
-  while { channel = session.openSession(); channel.ptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN do {}
+  while { channel = session.openSession(); channel.ptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN do
+    session.waitsocket(sock)
 
   if channel.ptr == null then
     Console.err.println("Channel could not be opened")
     shutdown()
 
-  session.openSession()
+  while { rc = channel.exec(commandline); rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
+
+  if rc != 0 then
+    Console.err.println("Command could not be executed")
+    shutdown()
+
   shutdown()
