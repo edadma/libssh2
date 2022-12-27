@@ -2,6 +2,7 @@ package io.github.edadma.libssh2
 
 import extern.LibSSH2 as lib
 
+import scala.annotation.tailrec
 import scala.collection.immutable.ArraySeq
 import scala.scalanative.unsafe.*
 import scala.scalanative.unsigned.*
@@ -110,9 +111,9 @@ implicit class Channel(val ptr: lib.channel_tp) extends AnyVal:
       lib.libssh2_channel_process_startup(ptr, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
   def read(session: Session, sock: Int): String =
-    var bytecount = 0
     val buf = new StringBuilder
 
+    @tailrec
     def read(): Unit =
       var rc: CSSize = 1.asInstanceOf[CSSize]
       var buffer = stackalloc[CChar](0x4000)
@@ -120,19 +121,13 @@ implicit class Channel(val ptr: lib.channel_tp) extends AnyVal:
       while rc > 0 do
         rc = lib.libssh2_channel_read_ex(ptr, 0, buffer, 0x4000.toUInt)
 
-        if rc > 0 then
-          bytecount += rc.toInt
-          Console.err.println("We read:")
-
-          for i <- 0 until rc.toInt do
-            buffer += buffer(i).toChar
-            Console.err.print(buffer(i).toChar)
-
-          Console.err.println()
-        else if rc != LIBSSH2_ERROR_EAGAIN then Console.err.println(s"libssh2_channel_read returned $rc")
+        if rc > 0 then for i <- 0 until rc.toInt do buf += buffer(i).toChar
+        else if rc != LIBSSH2_ERROR_EAGAIN && rc != 0 then Console.err.println(s"libssh2_channel_read returned $rc")
       end while
 
-      if rc == LIBSSH2_ERROR_EAGAIN then session.waitsocket(sock)
+      if rc == LIBSSH2_ERROR_EAGAIN then
+        session.waitsocket(sock)
+        read()
 
     read()
     buf.toString

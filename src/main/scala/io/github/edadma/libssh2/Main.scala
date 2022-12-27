@@ -105,4 +105,6 @@ package io.github.edadma.libssh2
     Console.err.println("Command could not be executed")
     shutdown()
 
+  Console.err.println("We read:")
+  Console.err.println(channel.read(session, sock))
   shutdown()
