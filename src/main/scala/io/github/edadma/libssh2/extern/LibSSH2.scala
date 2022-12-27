@@ -96,3 +96,4 @@ object LibSSH2:
   def libssh2_channel_free(channel: channel_tp): CInt = extern // 914
   def libssh2_session_disconnect_ex(session: session_tp, reason: CInt, description: CString, lang: CString): CInt =
     extern // 579
+  def libssh2_session_free(session: session_tp): CInt = extern // 587

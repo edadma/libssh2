@@ -102,6 +102,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   def disconnect(description: String): Int = Zone(implicit z =>
     lib.libssh2_session_disconnect_ex(session, SSH_DISCONNECT_BY_APPLICATION, toCString(description), c""),
   )
+  def free(): Unit = lib.libssh2_session_free(session)
 
 implicit class Channel(val channel: lib.channel_tp) extends AnyVal:
   def exec(command: String): Int =

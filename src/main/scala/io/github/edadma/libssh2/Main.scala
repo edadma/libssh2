@@ -63,5 +63,16 @@ package io.github.edadma.libssh2
   Console.err.println(
     s"Host check: $check, key: ${if check <= LIBSSH2_KNOWNHOST_CHECK_MISMATCH then host.key else "<none>"}",
   )
+  nh.free()
+
+  if password.nonEmpty then
+    while { rc = session.userAuthPassword(username, password); rc } == LIBSSH2_ERROR_EAGAIN do {}
+    if rc != 0 then
+      Console.err.println("Authentication by password failed")
+      shutdown()
 
   println("done")
+
+  def shutdown(): Unit =
+    session.disconnect("Normal Shutdown, Thank you for playing")
+    session.free()
