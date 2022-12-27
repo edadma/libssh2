@@ -110,7 +110,7 @@ package io.github.edadma.libssh2
 
   var exitcode = 127
 
-  while { rc = session.userAuthPassword(username, password); rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
+  while { rc = channel.close; rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
 
   val exitsignal: String =
     if rc == 0 then
