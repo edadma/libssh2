@@ -97,3 +97,11 @@ object LibSSH2:
   def libssh2_session_disconnect_ex(session: session_tp, reason: CInt, description: CString, lang: CString): CInt =
     extern // 579
   def libssh2_session_free(session: session_tp): CInt = extern // 587
+  def libssh2_scp_send_ex(
+      session: session_tp,
+      path: CString,
+      mode: CInt,
+      size: CSize,
+      mtime: CLong,
+      atime: CLong,
+  ): channel_tp = extern // 924

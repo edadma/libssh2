@@ -55,6 +55,8 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
     select(socket_fd + 1, readfd, writefd, null, timeout)
   end waitsocket
 
+  def scpSend(path: String, mode: Int, size: Long): Channel =
+    Zone(implicit z => lib.libssh2_scp_send_ex(toCString(path), mode, size.toULong))
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
   def knownHostInit: KnownHosts = lib.libssh2_knownhost_init(session)
   def hostKey: Option[(ArraySeq[Byte], Int)] =

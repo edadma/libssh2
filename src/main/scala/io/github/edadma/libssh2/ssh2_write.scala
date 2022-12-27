@@ -96,14 +96,15 @@ import java.nio.file.{Files, Paths}
     Console.err.println("Authentication by public key failed")
     shutdown()
 
-  var channel: Channel = new Channel(null)
-
-  while { channel = session.openSession(); channel.ptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN do
-    session.waitsocket(sock)
+  val channel = session.scpSend(scppath, perm, data.length)
 
   if channel.ptr == null then
-    Console.err.println("Channel could not be opened")
+    val (err, errmsg) = session.lastError
+
+    Console.err.println(s"Unable to open a session: ($err) $errmsg")
     shutdown()
+
+  Console.err.println("SCP session waiting to send file")
 
   while { rc = channel.exec(commandline); rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
 
