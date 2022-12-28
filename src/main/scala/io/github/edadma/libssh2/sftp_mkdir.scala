@@ -36,8 +36,6 @@ package io.github.edadma.libssh2
     Console.err.println("failed to initialize a session")
     sys.exit(1)
 
-  session.setBlocking(false)
-
   while ({ rc = session.handshake(sock); rc } == LIBSSH2_ERROR_EAGAIN) {}
 
   if rc != 0 then
@@ -90,14 +88,13 @@ package io.github.edadma.libssh2
     Console.err.println("Authentication by public key failed")
     shutdown()
 
-  var channel: Channel = new Channel(null)
+  val sftpSession = session.sftpInit
 
-  while { channel = session.openSession(); channel.ptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN do
-    session.waitsocket(sock)
-
-  if channel.ptr == null then
-    Console.err.println("Channel could not be opened")
+  if sftpSession.ptr == null then
+    Console.err.println("Unable to init SFTP session")
     shutdown()
+
+  session.setBlocking(true)
 
   while { rc = channel.exec(commandline); rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
 
