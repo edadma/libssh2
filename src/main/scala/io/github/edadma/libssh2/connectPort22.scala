@@ -8,9 +8,9 @@ import scala.scalanative.posix.netinet.in.sockaddr_in
 import scala.scalanative.posix.netinet.inOps._
 import scala.scalanative.posix.inttypes.uint16_t
 
-def connectPort22(hostname: String): Int = Zone { implicit z =>
+def connectPort22(hostname: String): Int =
   val sin = stackalloc[sockaddr_in]()
-  val hostaddr = inet_addr(toCString(hostname))
+  val hostaddr = Zone(implicit z => inet_addr(toCString(hostname)))
 
   /* Ultra basic "connect to port 22 on localhost"
    * Your code is responsible for creating the socket establishing the
@@ -24,4 +24,3 @@ def connectPort22(hostname: String): Int = Zone { implicit z =>
 
   if connect(sock, sin.asInstanceOf[Ptr[sockaddr]], sizeof[sockaddr_in].toUInt) != 0 then -1
   else sock
-}
