@@ -16,6 +16,8 @@ object LibSSH2:
   type knownhost_tp = Ptr[knownhost_t]
   type channel_t = CStruct0
   type channel_tp = Ptr[channel_t]
+  type sftp_t = CStruct0
+  type sftp_tp = Ptr[sftp_t]
 
   def libssh2_init(flags: CInt): CInt = extern // 530
   def libssh2_exit(): Unit = extern // 537
@@ -105,3 +107,4 @@ object LibSSH2:
       mtime: CLong,
       atime: CLong,
   ): channel_tp = extern // 924
+  def libssh2_sftp_init(session: session_tp): sftp_tp = extern // 221
