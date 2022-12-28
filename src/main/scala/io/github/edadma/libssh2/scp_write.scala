@@ -99,7 +99,7 @@ import java.nio.file.{Files, Paths}
 
   val channel = session.scpSend(scppath, perm, data.length)
 
-  if channel.ptr == null then
+  if channel.channelptr == null then
     val (err, errmsg) = session.lastError
 
     Console.err.println(s"Unable to open a session: ($err) $errmsg")

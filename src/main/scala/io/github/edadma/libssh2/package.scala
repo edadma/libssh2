@@ -188,7 +188,10 @@ implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
         if rc < 0 then return rc.toInt
         else
           ptr += rc
-          nread -= rc
+          nread -= rc.toInt
+    end while
+
+    0
   end write
   def close: Int = lib.libssh2_channel_close(channelptr)
   def getExitStatus: Int = lib.libssh2_channel_get_exit_status(channelptr)
