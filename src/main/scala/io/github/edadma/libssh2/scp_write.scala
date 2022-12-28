@@ -44,8 +44,6 @@ import java.nio.file.{Files, Paths}
     Console.err.println("failed to initialize a session")
     sys.exit(1)
 
-  session.setBlocking(false)
-
   while ({ rc = session.handshake(sock); rc } == LIBSSH2_ERROR_EAGAIN) {}
 
   if rc != 0 then
