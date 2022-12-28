@@ -108,3 +108,5 @@ object LibSSH2:
       atime: CLong,
   ): channel_tp = extern // 924
   def libssh2_sftp_init(session: session_tp): sftp_tp = extern // 221
+  def libssh2_sftp_mkdir_ex(sftp: sftp_tp, path: CString, path_len: CUnsignedInt, mode: CUnsignedLongInt): CInt =
+    extern // 304

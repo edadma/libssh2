@@ -35,7 +35,9 @@ def permissions(path: String): Int =
   Zone(implicit z => stat(toCString(path), info))
   info._13.toInt & 0x1ff
 
-implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal
+implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal:
+  def mkdir(path: String, path_len: Int, mode: Int): CInt =
+    Zone(implicit z => lib.libssh2_sftp_mkdir_ex(ptr, toCString(path), path.length.toUInt, mode.toULong))
 
 implicit class Session(val session: lib.session_tp) extends AnyVal:
   def waitsocket(socket_fd: Int): Int =
@@ -59,7 +61,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
 
   def sftpInit: SFTP = lib.libssh2_sftp_init(session)
   def scpSend(path: String, mode: Int, size: Long): Channel =
-    Zone(implicit z => lib.libssh2_scp_send_ex(toCString(path), mode, size.toULong))
+    Zone(implicit z => lib.libssh2_scp_send_ex(session, toCString(path), mode, size.toULong, 0, 0))
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
   def knownHostInit: KnownHosts = lib.libssh2_knownhost_init(session)
   def hostKey: Option[(ArraySeq[Byte], Int)] =
