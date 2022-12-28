@@ -29,6 +29,25 @@ val LIBSSH2_KNOWNHOST_CHECK_MISMATCH = 1
 val LIBSSH2_KNOWNHOST_CHECK_NOTFOUND = 2
 val LIBSSH2_KNOWNHOST_CHECK_FAILURE = 3
 
+private def o(n: Int): Int = Integer.parseInt(n.toString, 8)
+
+/* File mode */
+/* Read, write, execute/search by owner */
+val LIBSSH2_SFTP_S_IRWXU        = o(0000700)     /* RWX mask for owner */
+val LIBSSH2_SFTP_S_IRUSR        = o(0000400)     /* R for owner */
+val LIBSSH2_SFTP_S_IWUSR        = o(0000200)     /* W for owner */
+val LIBSSH2_SFTP_S_IXUSR        = o(0000100)     /* X for owner */
+/* Read, write, execute/search by group */
+val LIBSSH2_SFTP_S_IRWXG        = o(0000070)     /* RWX mask for group */
+val LIBSSH2_SFTP_S_IRGRP        = o(0000040)     /* R for group */
+val LIBSSH2_SFTP_S_IWGRP        = o(0000020)     /* W for group */
+val LIBSSH2_SFTP_S_IXGRP        = o(0000010)     /* X for group */
+/* Read, write, execute/search by others */
+val LIBSSH2_SFTP_S_IRWXO        = o(0000007)     /* RWX mask for other */
+val LIBSSH2_SFTP_S_IROTH        = o(0000004)     /* R for other */
+val LIBSSH2_SFTP_S_IWOTH        = o(0000002)     /* W for other */
+val LIBSSH2_SFTP_S_IXOTH        = o(0000001)     /* X for other */
+
 def permissions(path: String): Int =
   val info = stackalloc[stat]()
 
@@ -36,8 +55,9 @@ def permissions(path: String): Int =
   info._13.toInt & 0x1ff
 
 implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal:
-  def mkdir(path: String, path_len: Int, mode: Int): CInt =
+  def mkdir(path: String, path_len: Int, mode: Int): Int =
     Zone(implicit z => lib.libssh2_sftp_mkdir_ex(ptr, toCString(path), path.length.toUInt, mode.toULong))
+  def shutdown: Int = lib.libssh2_sftp_shutdown(ptr)
 
 implicit class Session(val session: lib.session_tp) extends AnyVal:
   def waitsocket(socket_fd: Int): Int =

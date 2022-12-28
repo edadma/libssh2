@@ -96,27 +96,14 @@ package io.github.edadma.libssh2
 
   session.setBlocking(true)
 
-  while { rc = channel.exec(commandline); rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
+  rc = sftpSession.mkdir(
+    sftppath,
+    LIBSSH2_SFTP_S_IRWXU | LIBSSH2_SFTP_S_IRGRP | LIBSSH2_SFTP_S_IXGRP | LIBSSH2_SFTP_S_IROTH | LIBSSH2_SFTP_S_IXOTH,
+  )
 
   if rc != 0 then
-    Console.err.println("Command could not be executed")
+    Console.err.println(s"libssh2_sftp_mkdir failed: $rc")
     shutdown()
 
-  Console.err.println("We read:")
-  Console.err.println(channel.read(session, sock))
-
-  var exitcode = 127
-
-  while { rc = channel.close; rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
-
-  val exitsignal: String =
-    if rc == 0 then
-      exitcode = channel.getExitStatus
-      channel.getExitSignal._2
-    else null
-
-  if exitsignal ne null then Console.err.println(s"Got signal: $exitsignal")
-  else Console.err.println(s"EXIT: $exitcode")
-
-  channel.free
+  sftpSession.shutdown
   shutdown()
