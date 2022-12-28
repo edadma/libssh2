@@ -40,7 +40,7 @@ import java.nio.file.{Files, Paths}
     exit()
     sys.exit(status)
 
-  if session.session eq null then
+  if session.isNull then
     Console.err.println("failed to initialize a session")
     sys.exit(1)
 
@@ -52,7 +52,7 @@ import java.nio.file.{Files, Paths}
 
   val nh = session.knownHostInit
 
-  if nh.hosts eq null then
+  if nh.isNull then
     Console.err.println("failed to knownhost init")
     sys.exit(1)
 
@@ -99,7 +99,7 @@ import java.nio.file.{Files, Paths}
 
   val channel = session.scpSend(scppath, perm, data.length)
 
-  if channel.channelptr == null then
+  if channel.isNull then
     val (err, errmsg) = session.lastError
 
     Console.err.println(s"Unable to open a session: ($err) $errmsg")

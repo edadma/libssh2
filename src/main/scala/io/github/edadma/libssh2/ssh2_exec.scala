@@ -26,14 +26,15 @@ package io.github.edadma.libssh2
 
   val session = sessionInit
 
-  def shutdown(): Unit =
+  def shutdown(status: Int): Unit =
     session.disconnect("Normal Shutdown, Thank you for playing")
     session.free()
     scala.scalanative.posix.unistd.close(sock)
     Console.err.println("All done")
     exit()
+    sys.exit(status)
 
-  if session.session eq null then
+  if session.isNull then
     Console.err.println("failed to initialize a session")
     sys.exit(1)
 
@@ -47,7 +48,7 @@ package io.github.edadma.libssh2
 
   val nh = session.knownHostInit
 
-  if nh.hosts eq null then
+  if nh.isNull then
     Console.err.println("failed to knownhost init")
     sys.exit(1)
 
@@ -76,7 +77,7 @@ package io.github.edadma.libssh2
     while { rc = session.userAuthPassword(username, password); rc } == LIBSSH2_ERROR_EAGAIN do {}
     if rc != 0 then
       Console.err.println("Authentication by password failed")
-      shutdown()
+      shutdown(1)
   else
     while {
         rc = session.userauthPublickeyFromFile(
@@ -89,22 +90,22 @@ package io.github.edadma.libssh2
     do {}
   if rc != 0 then
     Console.err.println("Authentication by public key failed")
-    shutdown()
+    shutdown(1)
 
   var channel: Channel = new Channel(null)
 
-  while { channel = session.openSession(); channel.channelptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN
+  while { channel = session.openSession(); channel }.isNull && session.lastError._1 == LIBSSH2_ERROR_EAGAIN
   do session.waitsocket(sock)
 
-  if channel.channelptr == null then
+  if channel.isNull then
     Console.err.println("Channel could not be opened")
-    shutdown()
+    shutdown(1)
 
   while { rc = channel.exec(commandline); rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
 
   if rc != 0 then
     Console.err.println("Command could not be executed")
-    shutdown()
+    shutdown(1)
 
   Console.err.println("We read:")
   Console.err.println(new String(channel.read(session, sock).toArray))
@@ -123,4 +124,4 @@ package io.github.edadma.libssh2
   else Console.err.println(s"EXIT: $exitcode")
 
   channel.free
-  shutdown()
+  shutdown(0)

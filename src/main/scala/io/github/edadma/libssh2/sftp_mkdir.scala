@@ -33,7 +33,7 @@ package io.github.edadma.libssh2
     Console.err.println("All done")
     exit()
 
-  if session.session eq null then
+  if session.isNull then
     Console.err.println("failed to initialize a session")
     sys.exit(1)
 
@@ -45,7 +45,7 @@ package io.github.edadma.libssh2
 
   val nh = session.knownHostInit
 
-  if nh.hosts eq null then
+  if nh.isNull then
     Console.err.println("failed to knownhost init")
     sys.exit(1)
 
@@ -91,7 +91,7 @@ package io.github.edadma.libssh2
 
   val sftpSession = session.sftpInit
 
-  if sftpSession.ptr == null then
+  if sftpSession.isNull then
     Console.err.println("Unable to init SFTP session")
     shutdown()
 

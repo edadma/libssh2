@@ -56,11 +56,14 @@ def permissions(path: String): Int =
   info._13.toInt & 0x1ff
 
 implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal:
+  def isNull: Boolean = ptr == null
   def mkdir(path: String, mode: Int): Int =
     Zone(implicit z => lib.libssh2_sftp_mkdir_ex(ptr, toCString(path), path.length.toUInt, mode.toULong))
   def shutdown: Int = lib.libssh2_sftp_shutdown(ptr)
 
-implicit class Session(val session: lib.session_tp) extends AnyVal:
+implicit class Session(val sessionptr: lib.session_tp) extends AnyVal:
+  def isNull: Boolean = sessionptr == null
+
   def waitsocket(socket_fd: Int): Int =
     val timeout = stackalloc[timeval]()
     val fd = stackalloc[fd_set]()
@@ -73,24 +76,24 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
     FD_SET(socket_fd, fd)
 
     /* now make sure we wait in the correct direction */
-    val dir = session.blockDirections
+    val dir = sessionptr.blockDirections
 
     if (dir & LIBSSH2_SESSION_BLOCK_INBOUND) != 0 then readfd = fd
     if (dir & LIBSSH2_SESSION_BLOCK_OUTBOUND) != 0 then writefd = fd
     select(socket_fd + 1, readfd, writefd, null, timeout)
   end waitsocket
 
-  def sftpInit: SFTP = lib.libssh2_sftp_init(session)
+  def sftpInit: SFTP = lib.libssh2_sftp_init(sessionptr)
   def scpSend(path: String, mode: Int, size: Long): Channel =
-    Zone(implicit z => lib.libssh2_scp_send_ex(session, toCString(path), mode, size.toULong, 0, 0))
-  def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(session, if blocking then 1 else 0)
-  def knownHostInit: KnownHosts = lib.libssh2_knownhost_init(session)
+    Zone(implicit z => lib.libssh2_scp_send_ex(sessionptr, toCString(path), mode, size.toULong, 0, 0))
+  def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(sessionptr, if blocking then 1 else 0)
+  def knownHostInit: KnownHosts = lib.libssh2_knownhost_init(sessionptr)
   def hostKey: Option[(ArraySeq[Byte], Int)] =
     val len = stackalloc[CSize]()
     val typ = stackalloc[CInt]()
-    val key = lib.libssh2_session_hostkey(session, len, typ)
+    val key = lib.libssh2_session_hostkey(sessionptr, len, typ)
 
-    if key eq null then None
+    if key == null then None
     else
       val keyarr = new Array[Byte]((!len).toInt)
 
@@ -99,7 +102,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
       Some((keyarr to ArraySeq, !typ))
   def userAuthPassword(username: String, password: String): Int = Zone(implicit z =>
     lib.libssh2_userauth_password_ex(
-      session,
+      sessionptr,
       toCString(username),
       username.length.toUInt,
       toCString(password),
@@ -110,7 +113,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   def userauthPublickeyFromFile(username: String, publickey: String, privatekey: String, passphrase: String): Int =
     Zone(implicit z =>
       lib.libssh2_userauth_publickey_fromfile_ex(
-        session,
+        sessionptr,
         toCString(username),
         username.length.asInstanceOf[CUnsignedInt],
         toCString(publickey),
@@ -119,7 +122,7 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
       ),
     )
   def openSession(): Channel = lib.libssh2_channel_open_ex(
-    session,
+    sessionptr,
     c"session",
     7.toUInt,
     LIBSSH2_CHANNEL_WINDOW_DEFAULT,
@@ -130,17 +133,19 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   def lastError: (Int, String) =
     val errmsg = stackalloc[CString]()
     val errmsg_len = stackalloc[CInt]()
-    val rc = lib.libssh2_session_last_error(session, errmsg, errmsg_len, 0)
+    val rc = lib.libssh2_session_last_error(sessionptr, errmsg, errmsg_len, 0)
 
     (rc, fromCString(!errmsg))
-  def blockDirections: Int = lib.libssh2_session_block_directions(session)
-  def handshake(sock: Int): Int = lib.libssh2_session_handshake(session, sock)
+  def blockDirections: Int = lib.libssh2_session_block_directions(sessionptr)
+  def handshake(sock: Int): Int = lib.libssh2_session_handshake(sessionptr, sock)
   def disconnect(description: String): Int = Zone(implicit z =>
-    lib.libssh2_session_disconnect_ex(session, SSH_DISCONNECT_BY_APPLICATION, toCString(description), c""),
+    lib.libssh2_session_disconnect_ex(sessionptr, SSH_DISCONNECT_BY_APPLICATION, toCString(description), c""),
   )
-  def free(): Unit = lib.libssh2_session_free(session)
+  def free(): Unit = lib.libssh2_session_free(sessionptr)
 
 implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
+  def isNull: Boolean = channelptr == null
+
   def exec(command: String): Int =
     Zone(implicit z =>
       lib.libssh2_channel_process_startup(channelptr, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
@@ -216,6 +221,7 @@ implicit class KnownHost(val host: lib.knownhost_tp) extends AnyVal:
   def typemask: Int = host._5
 
 implicit class KnownHosts(val hosts: lib.knownhosts_tp) extends AnyVal:
+  def isNull: Boolean = hosts == null
   def readFile(filename: String, typ: KnownHostFile): Int =
     Zone(implicit z => lib.libssh2_knownhost_readfile(hosts, toCString(filename), typ.value))
   def writeFile(filename: String, typ: KnownHostFile): Int =
