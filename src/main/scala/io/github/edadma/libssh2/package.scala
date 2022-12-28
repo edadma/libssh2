@@ -201,6 +201,9 @@ implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
 
     (rc, fromCString(!exitsignal))
   def free: Int = lib.libssh2_channel_free(channelptr)
+  def sendEof: Int = lib.libssh2_channel_send_eof(channelptr)
+  def waitEof: Int = lib.libssh2_channel_wait_eof(channelptr)
+  def waitClosed: Int = lib.libssh2_channel_wait_closed(channelptr)
 end Channel
 
 implicit class KnownHost(val host: lib.knownhost_tp) extends AnyVal:

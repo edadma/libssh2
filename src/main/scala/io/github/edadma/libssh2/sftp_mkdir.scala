@@ -31,6 +31,7 @@ package io.github.edadma.libssh2
     session.free()
     scala.scalanative.posix.unistd.close(sock)
     Console.err.println("All done")
+    exit()
 
   if session.session eq null then
     Console.err.println("failed to initialize a session")

@@ -37,6 +37,7 @@ import java.nio.file.{Files, Paths}
     session.free()
     scala.scalanative.posix.unistd.close(sock)
     Console.err.println("All done")
+    exit()
 
   if session.session eq null then
     Console.err.println("failed to initialize a session")
@@ -105,28 +106,17 @@ import java.nio.file.{Files, Paths}
     shutdown()
 
   Console.err.println("SCP session waiting to send file")
+  rc = channel.write(data)
 
-  while { rc = channel.exec(commandline); rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
-
-  if rc != 0 then
-    Console.err.println("Command could not be executed")
+  if rc < 0 then
+    Console.err.println(s"Error writing data: $rc")
     shutdown()
 
-  Console.err.println("We read:")
-  Console.err.println(channel.read(session, sock))
-
-  var exitcode = 127
-
-  while { rc = channel.close; rc } == LIBSSH2_ERROR_EAGAIN do session.waitsocket(sock)
-
-  val exitsignal: String =
-    if rc == 0 then
-      exitcode = channel.getExitStatus
-      channel.getExitSignal._2
-    else null
-
-  if exitsignal ne null then Console.err.println(s"Got signal: $exitsignal")
-  else Console.err.println(s"EXIT: $exitcode")
-
+  Console.err.println("Sending EOF")
+  channel.sendEof
+  Console.err.println("Waiting for EOF")
+  channel.waitEof
+  Console.err.println("Waiting for channel to close")
+  channel.waitClosed
   channel.free
   shutdown()

@@ -31,6 +31,7 @@ package io.github.edadma.libssh2
     session.free()
     scala.scalanative.posix.unistd.close(sock)
     Console.err.println("All done")
+    exit()
 
   if session.session eq null then
     Console.err.println("failed to initialize a session")
@@ -92,8 +93,8 @@ package io.github.edadma.libssh2
 
   var channel: Channel = new Channel(null)
 
-  while { channel = session.openSession(); channel.channelptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN do
-    session.waitsocket(sock)
+  while { channel = session.openSession(); channel.channelptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN
+  do session.waitsocket(sock)
 
   if channel.channelptr == null then
     Console.err.println("Channel could not be opened")

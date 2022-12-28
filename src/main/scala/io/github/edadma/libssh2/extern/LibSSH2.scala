@@ -113,3 +113,6 @@ object LibSSH2:
   def libssh2_sftp_shutdown(sftp: sftp_tp): CInt = extern // 222
   def libssh2_channel_write_ex(channel: channel_tp, stream_id: CInt, buf: Ptr[Byte], buflen: CSize): CSSize =
     extern // 846
+  def libssh2_channel_send_eof(channel: channel_tp): CInt = extern // 909
+  def libssh2_channel_wait_eof(channel: channel_tp): CInt = extern // 911
+  def libssh2_channel_wait_closed(channel: channel_tp): CInt = extern // 913
