@@ -2,14 +2,14 @@ package io.github.edadma.libssh2
 
 @main def sftp_mkdir(args: String*): Unit =
   var hostname = "127.0.0.1"
-  var commandline = "uptime"
   var username = "testuser"
   var password = "easypassword"
+  var sftppath = "/tmp/sftp_mkdir"
 
   if args.nonEmpty then hostname = args(0)
   if args.length > 1 then username = args(1)
   if args.length > 2 then password = args(2)
-  if args.length > 3 then commandline = args(3)
+  if args.length > 3 then sftppath = args(3)
 
   var rc = init(0)
 

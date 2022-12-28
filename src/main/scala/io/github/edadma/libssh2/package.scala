@@ -55,7 +55,7 @@ def permissions(path: String): Int =
   info._13.toInt & 0x1ff
 
 implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal:
-  def mkdir(path: String, path_len: Int, mode: Int): Int =
+  def mkdir(path: String, mode: Int): Int =
     Zone(implicit z => lib.libssh2_sftp_mkdir_ex(ptr, toCString(path), path.length.toUInt, mode.toULong))
   def shutdown: Int = lib.libssh2_sftp_shutdown(ptr)
 
