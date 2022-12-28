@@ -92,10 +92,10 @@ package io.github.edadma.libssh2
 
   var channel: Channel = new Channel(null)
 
-  while { channel = session.openSession(); channel.ptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN do
+  while { channel = session.openSession(); channel.channelptr } == null && session.lastError._1 == LIBSSH2_ERROR_EAGAIN do
     session.waitsocket(sock)
 
-  if channel.ptr == null then
+  if channel.channelptr == null then
     Console.err.println("Channel could not be opened")
     shutdown()
 
@@ -106,7 +106,7 @@ package io.github.edadma.libssh2
     shutdown()
 
   Console.err.println("We read:")
-  Console.err.println(channel.read(session, sock))
+  Console.err.println(new String(channel.read(session, sock)))
 
   var exitcode = 127
 

@@ -4,6 +4,7 @@ import extern.LibSSH2 as lib
 
 import scala.annotation.tailrec
 import scala.collection.immutable.ArraySeq
+import scala.collection.mutable.ArrayBuffer
 import scala.scalanative.unsafe.*
 import scala.scalanative.unsigned.*
 import scala.scalanative.posix.sys.time.*
@@ -139,23 +140,23 @@ implicit class Session(val session: lib.session_tp) extends AnyVal:
   )
   def free(): Unit = lib.libssh2_session_free(session)
 
-implicit class Channel(val ptr: lib.channel_tp) extends AnyVal:
+implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
   def exec(command: String): Int =
     Zone(implicit z =>
-      lib.libssh2_channel_process_startup(ptr, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
+      lib.libssh2_channel_process_startup(channelptr, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
-  def read(session: Session, sock: Int): String =
-    val buf = new StringBuilder
+  def read(session: Session, sock: Int): ArraySeq[Byte] =
+    val buf = new ArrayBuffer[Byte]
 
     @tailrec
     def read(): Unit =
       var rc: CSSize = 1.asInstanceOf[CSSize]
-      var buffer = stackalloc[CChar](0x4000)
+      var buffer = stackalloc[Byte](0x4000)
 
       while rc > 0 do
-        rc = lib.libssh2_channel_read_ex(ptr, 0, buffer, 0x4000.toUInt)
+        rc = lib.libssh2_channel_read_ex(channelptr, 0, buffer, 0x4000.toUInt)
 
-        if rc > 0 then for i <- 0 until rc.toInt do buf += buffer(i).toChar
+        if rc > 0 then for i <- 0 until rc.toInt do buf += buffer(i)
         else if rc != LIBSSH2_ERROR_EAGAIN && rc != 0 then Console.err.println(s"libssh2_channel_read returned $rc")
 
       if rc == LIBSSH2_ERROR_EAGAIN then
@@ -163,19 +164,43 @@ implicit class Channel(val ptr: lib.channel_tp) extends AnyVal:
         read()
 
     read()
-    buf.toString
+    buf to ArraySeq
   end read
-  def close: Int = lib.libssh2_channel_close(ptr)
-  def getExitStatus: Int = lib.libssh2_channel_get_exit_status(ptr)
+  def write(data: Seq[Byte]): Int =
+    var idx = 0
+    var rc: CSSize = 1.asInstanceOf[CSSize]
+    val mem = stackalloc[Byte](1024.toUInt)
+    var ptr: Ptr[Byte] = null
+    var nread = 0
+
+    while idx < data.length do
+      nread = (data.length - idx) min 1024
+
+      for i <- 0 until nread do
+        mem(i) = data(idx)
+        idx += 1
+
+      ptr = mem
+
+      while nread > 0 do
+        rc = lib.libssh2_channel_write_ex(channelptr, 0, ptr, nread.toUInt)
+
+        if rc < 0 then return rc.toInt
+        else
+          ptr += rc
+          nread -= rc
+  end write
+  def close: Int = lib.libssh2_channel_close(channelptr)
+  def getExitStatus: Int = lib.libssh2_channel_get_exit_status(channelptr)
   def getExitSignal: (Int, String) =
     val exitsignal = stackalloc[CString]()
 
     !exitsignal = c"none"
 
-    val rc = lib.libssh2_channel_get_exit_signal(ptr, exitsignal, null, null, null, null, null)
+    val rc = lib.libssh2_channel_get_exit_signal(channelptr, exitsignal, null, null, null, null, null)
 
     (rc, fromCString(!exitsignal))
-  def free: Int = lib.libssh2_channel_free(ptr)
+  def free: Int = lib.libssh2_channel_free(channelptr)
 end Channel
 
 implicit class KnownHost(val host: lib.knownhost_tp) extends AnyVal:

@@ -111,3 +111,5 @@ object LibSSH2:
   def libssh2_sftp_mkdir_ex(sftp: sftp_tp, path: CString, path_len: CUnsignedInt, mode: CUnsignedLongInt): CInt =
     extern // 304
   def libssh2_sftp_shutdown(sftp: sftp_tp): CInt = extern // 222
+  def libssh2_channel_write_ex(channel: channel_tp, stream_id: CInt, buf: Ptr[Byte], buflen: CSize): CSSize =
+    extern // 846
