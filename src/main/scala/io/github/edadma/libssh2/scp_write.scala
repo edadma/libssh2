@@ -32,12 +32,13 @@ import java.nio.file.{Files, Paths}
 
   val session = sessionInit
 
-  def shutdown(): Unit =
+  def shutdown(status: Int): Unit =
     session.disconnect("Normal Shutdown, Thank you for playing")
     session.free()
     scala.scalanative.posix.unistd.close(sock)
     Console.err.println("All done")
     exit()
+    sys.exit(status)
 
   if session.session eq null then
     Console.err.println("failed to initialize a session")
@@ -82,7 +83,7 @@ import java.nio.file.{Files, Paths}
     while { rc = session.userAuthPassword(username, password); rc } == LIBSSH2_ERROR_EAGAIN do {}
     if rc != 0 then
       Console.err.println("Authentication by password failed")
-      shutdown()
+      shutdown(1)
   else
     while {
         rc = session.userauthPublickeyFromFile(
@@ -93,9 +94,10 @@ import java.nio.file.{Files, Paths}
         ); rc
       } == LIBSSH2_ERROR_EAGAIN
     do {}
+
   if rc != 0 then
     Console.err.println("Authentication by public key failed")
-    shutdown()
+    shutdown(1)
 
   val channel = session.scpSend(scppath, perm, data.length)
 
@@ -103,14 +105,14 @@ import java.nio.file.{Files, Paths}
     val (err, errmsg) = session.lastError
 
     Console.err.println(s"Unable to open a session: ($err) $errmsg")
-    shutdown()
+    shutdown(1)
 
   Console.err.println("SCP session waiting to send file")
   rc = channel.write(data)
 
   if rc < 0 then
     Console.err.println(s"Error writing data: $rc")
-    shutdown()
+    shutdown(1)
 
   Console.err.println("Sending EOF")
   channel.sendEof
@@ -119,4 +121,4 @@ import java.nio.file.{Files, Paths}
   Console.err.println("Waiting for channel to close")
   channel.waitClosed
   channel.free
-  shutdown()
+  shutdown(0)
