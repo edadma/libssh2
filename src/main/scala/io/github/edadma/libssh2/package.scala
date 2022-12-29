@@ -164,6 +164,7 @@ implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
       var buffer = stackalloc[Byte](0x4000)
 
       while rc > 0 do
+        println(123)
         rc = lib.libssh2_channel_read_ex(channelptr, 0, buffer, 0x4000.toUInt)
 
         if rc > 0 then for i <- 0 until rc.toInt do buf += buffer(i)
