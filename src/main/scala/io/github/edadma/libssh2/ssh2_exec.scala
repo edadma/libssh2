@@ -38,7 +38,7 @@ package io.github.edadma.libssh2
     Console.err.println("failed to initialize a session")
     sys.exit(1)
 
-  session.setBlocking(false)
+  session.setBlocking(true)
 
   while ({ rc = session.handshake(sock); rc } == LIBSSH2_ERROR_EAGAIN) {}
 
