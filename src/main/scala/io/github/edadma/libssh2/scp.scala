@@ -6,7 +6,7 @@ import java.nio.file.{Files, Paths}
   var hostname = "127.0.0.1"
   var username = "testuser"
   var password = "easypassword"
-  var scppath = "/tmp/TEST"
+  var scppath = "/etc/passwd"
 
   if args.nonEmpty then hostname = args(0)
   if args.length > 1 then username = args(1)
