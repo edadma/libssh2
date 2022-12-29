@@ -93,7 +93,7 @@ import java.nio.file.{Files, Paths}
     Console.err.println("Authentication by public key failed")
     shutdown(1)
 
-  val channel = session.scpRecv2(scppath)
+  val (channel, size) = session.scpRecv2(scppath)
 
   if channel.isNull then
     val (err, errmsg) = session.lastError
@@ -103,7 +103,7 @@ import java.nio.file.{Files, Paths}
 
   Console.err.println("SCP session receiving file")
 
-  val data = channel.read(10) getOrElse {
+  val data = channel.read(size) getOrElse {
     Console.err.println(s"Error reading data: $rc")
     shutdown(1)
   }

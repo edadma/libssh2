@@ -86,11 +86,11 @@ implicit class Session(val sessionptr: lib.session_tp) extends AnyVal:
   def sftpInit: SFTP = lib.libssh2_sftp_init(sessionptr)
   def scpSend(path: String, mode: Int, size: Long): Channel =
     Zone(implicit z => lib.libssh2_scp_send_ex(sessionptr, toCString(path), mode, size.toULong, 0, 0))
-  def scpRecv2(path: String): Channel =
+  def scpRecv2(path: String): (Channel, Int) =
     val fileinfo = stackalloc[lib.struct_stat_t]()
     val channel = Zone(implicit z => lib.libssh2_scp_recv2(sessionptr, toCString(path), fileinfo))
 
-    channel
+    (channel, (!(fileinfo.asInstanceOf[Ptr[Byte]] + 48).asInstanceOf[Ptr[CLong]]).toInt)
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(sessionptr, if blocking then 1 else 0)
   def knownHostInit: KnownHosts = lib.libssh2_knownhost_init(sessionptr)
   def hostKey: Option[(ArraySeq[Byte], Int)] =
