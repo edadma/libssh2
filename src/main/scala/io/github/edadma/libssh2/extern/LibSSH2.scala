@@ -2,7 +2,8 @@ package io.github.edadma.libssh2.extern
 
 import io.github.edadma.libssh2.extern.LibSSH2.session_tp
 
-import scala.scalanative.unsafe.*
+import scala.scalanative.unsafe.*, Nat.*
+import scala.scalanative.unsafe.Tag.Digit3
 import scala.scalanative.unsigned.*
 
 @link("ssh2")
@@ -18,6 +19,9 @@ object LibSSH2:
   type channel_tp = Ptr[channel_t]
   type sftp_t = CStruct0
   type sftp_tp = Ptr[sftp_t]
+  type _1024 = Digit4[_1, _0, _2, _4]
+  type struct_stat_t = CArray[Byte, _1024]
+  type struct_stat_tp = Ptr[struct_stat_t]
 
   def libssh2_init(flags: CInt): CInt = extern // 530
   def libssh2_exit(): Unit = extern // 537
@@ -116,3 +120,4 @@ object LibSSH2:
   def libssh2_channel_send_eof(channel: channel_tp): CInt = extern // 909
   def libssh2_channel_wait_eof(channel: channel_tp): CInt = extern // 911
   def libssh2_channel_wait_closed(channel: channel_tp): CInt = extern // 913
+  def libssh2_scp_recv2(session: session_tp, path: CString, sb: Ptr[struct_stat_t]): channel_tp = extern // 921
