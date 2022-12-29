@@ -103,7 +103,7 @@ import java.nio.file.{Files, Paths}
 
   Console.err.println("SCP session receiving file")
 
-  val data = channel.read(session, sock) getOrElse {
+  val data = channel.read(10) getOrElse {
     Console.err.println(s"Error reading data: $rc")
     shutdown(1)
   }

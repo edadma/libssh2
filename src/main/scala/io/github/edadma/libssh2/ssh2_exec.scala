@@ -108,7 +108,7 @@ package io.github.edadma.libssh2
     shutdown(1)
 
   Console.err.println("We read:")
-  Console.err.println(new String(channel.read(session, sock).get.toArray))
+  Console.err.println(new String(channel.read().get.toArray))
 
   var exitcode = 127
 

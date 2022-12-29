@@ -155,32 +155,33 @@ implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
     Zone(implicit z =>
       lib.libssh2_channel_process_startup(channelptr, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
-  def read(session: Session, sock: Int): Option[ArraySeq[Byte]] =
+  def read(limit: Int = Int.MaxValue)/*(session: Session, sock: Int)*/: Option[ArraySeq[Byte]] =
     val buf = new ArrayBuffer[Byte]
 
-    @tailrec
+//    @tailrec
     def read(): Boolean =
       var rc: CSSize = 1.asInstanceOf[CSSize]
       var buffer = stackalloc[Byte](0x4000)
 
-      while rc > 0 do
-        println(123)
+      while rc > 0 && buf.length < limit do
         rc = lib.libssh2_channel_read_ex(channelptr, 0, buffer, 0x4000.toUInt)
 
-        if rc > 0 then for i <- 0 until rc.toInt do buf += buffer(i)
+        if rc > 0 then for i <- 0 until (rc.toInt min (limit - buf.length)) do buf += buffer(i)
         else if rc != LIBSSH2_ERROR_EAGAIN && rc != 0 then
           Console.err.println(s"libssh2_channel_read returned $rc")
           return false
 
-      if rc == LIBSSH2_ERROR_EAGAIN then
-        session.waitsocket(sock)
-        read()
-      else true
+//      if rc == LIBSSH2_ERROR_EAGAIN then
+//        session.waitsocket(sock)
+//        read()
+//      else true
+      true
     end read
 
     if read() then Some(buf to ArraySeq)
     else None
   end read
+
   def write(data: Seq[Byte]): Int =
     var idx = 0
     var rc: CSSize = 1.asInstanceOf[CSSize]
