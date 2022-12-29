@@ -86,6 +86,11 @@ implicit class Session(val sessionptr: lib.session_tp) extends AnyVal:
   def sftpInit: SFTP = lib.libssh2_sftp_init(sessionptr)
   def scpSend(path: String, mode: Int, size: Long): Channel =
     Zone(implicit z => lib.libssh2_scp_send_ex(sessionptr, toCString(path), mode, size.toULong, 0, 0))
+  def scpRecv2(path: String): Channel =
+    val fileinfo = stackalloc[lib.struct_stat_t]()
+    val channel = Zone(implicit z => lib.libssh2_scp_recv2(sessionptr, toCString(path), fileinfo))
+
+    channel
   def setBlocking(blocking: Boolean): Unit = lib.libssh2_session_set_blocking(sessionptr, if blocking then 1 else 0)
   def knownHostInit: KnownHosts = lib.libssh2_knownhost_init(sessionptr)
   def hostKey: Option[(ArraySeq[Byte], Int)] =
@@ -150,11 +155,11 @@ implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
     Zone(implicit z =>
       lib.libssh2_channel_process_startup(channelptr, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
-  def read(session: Session, sock: Int): ArraySeq[Byte] =
+  def read(session: Session, sock: Int): Option[ArraySeq[Byte]] =
     val buf = new ArrayBuffer[Byte]
 
     @tailrec
-    def read(): Unit =
+    def read(): Boolean =
       var rc: CSSize = 1.asInstanceOf[CSSize]
       var buffer = stackalloc[Byte](0x4000)
 
@@ -162,14 +167,18 @@ implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
         rc = lib.libssh2_channel_read_ex(channelptr, 0, buffer, 0x4000.toUInt)
 
         if rc > 0 then for i <- 0 until rc.toInt do buf += buffer(i)
-        else if rc != LIBSSH2_ERROR_EAGAIN && rc != 0 then Console.err.println(s"libssh2_channel_read returned $rc")
+        else if rc != LIBSSH2_ERROR_EAGAIN && rc != 0 then
+          Console.err.println(s"libssh2_channel_read returned $rc")
+          return false
 
       if rc == LIBSSH2_ERROR_EAGAIN then
         session.waitsocket(sock)
         read()
+      else true
+    end read
 
-    read()
-    buf to ArraySeq
+    if read() then Some(buf to ArraySeq)
+    else None
   end read
   def write(data: Seq[Byte]): Int =
     var idx = 0
