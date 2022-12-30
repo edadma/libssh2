@@ -19,6 +19,8 @@ object LibSSH2:
   type channel_tp = Ptr[channel_t]
   type sftpSession_t = CStruct0
   type sftpSession_tp = Ptr[sftpSession_t]
+  type sftpHandle_t = CStruct0
+  type sftpHandle_tp = Ptr[sftpHandle_t]
   type _1024 = Digit4[_1, _0, _2, _4]
   type struct_stat_t = CArray[Byte, _1024]
   type struct_stat_tp = Ptr[struct_stat_t]

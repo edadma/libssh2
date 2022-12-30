@@ -92,6 +92,9 @@ implicit class SFTP(val ptr: lib.sftpSession_tp) extends AnyVal:
   def mkdir(path: String, mode: Int): Int =
     Zone(implicit z => lib.libssh2_sftp_mkdir_ex(ptr, toCString(path), path.length.toUInt, mode.toULong))
   def shutdown: Int = lib.libssh2_sftp_shutdown(ptr)
+end SFTP
+
+implicit class SFTPHandle(val ptr: lib.sftpHandle_tp) extends AnyVal:
   def fstat: Stat =
     val attrs = stackalloc[lib.attributes_t]()
 
@@ -105,7 +108,7 @@ implicit class SFTP(val ptr: lib.sftpSession_tp) extends AnyVal:
       attrs._6.toLong,
       attrs._7.toLong,
     )
-end SFTP
+end SFTPHandle
 
 implicit class Session(val sessionptr: lib.session_tp) extends AnyVal:
   def isNull: Boolean = sessionptr == null
