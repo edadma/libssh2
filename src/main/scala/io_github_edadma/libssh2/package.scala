@@ -30,24 +30,24 @@ val LIBSSH2_KNOWNHOST_CHECK_MISMATCH = 1
 val LIBSSH2_KNOWNHOST_CHECK_NOTFOUND = 2
 val LIBSSH2_KNOWNHOST_CHECK_FAILURE = 3
 
-private def o(n: Int): Int = Integer.parseInt(n.toString, 8)
+private def o(n: String): Int = Integer.parseInt(n, 8)
 
 /* File mode */
 /* Read, write, execute/search by owner */
-val LIBSSH2_SFTP_S_IRWXU        = o(0000700)     /* RWX mask for owner */
-val LIBSSH2_SFTP_S_IRUSR        = o(0000400)     /* R for owner */
-val LIBSSH2_SFTP_S_IWUSR        = o(0000200)     /* W for owner */
-val LIBSSH2_SFTP_S_IXUSR        = o(0000100)     /* X for owner */
+val LIBSSH2_SFTP_S_IRWXU = o("0000700") /* RWX mask for owner */
+val LIBSSH2_SFTP_S_IRUSR = o("0000400") /* R for owner */
+val LIBSSH2_SFTP_S_IWUSR = o("0000200") /* W for owner */
+val LIBSSH2_SFTP_S_IXUSR = o("0000100") /* X for owner */
 /* Read, write, execute/search by group */
-val LIBSSH2_SFTP_S_IRWXG        = o(0000070)     /* RWX mask for group */
-val LIBSSH2_SFTP_S_IRGRP        = o(0000040)     /* R for group */
-val LIBSSH2_SFTP_S_IWGRP        = o(0000020)     /* W for group */
-val LIBSSH2_SFTP_S_IXGRP        = o(0000010)     /* X for group */
+val LIBSSH2_SFTP_S_IRWXG = o("0000070") /* RWX mask for group */
+val LIBSSH2_SFTP_S_IRGRP = o("0000040") /* R for group */
+val LIBSSH2_SFTP_S_IWGRP = o("0000020") /* W for group */
+val LIBSSH2_SFTP_S_IXGRP = o("0000010") /* X for group */
 /* Read, write, execute/search by others */
-val LIBSSH2_SFTP_S_IRWXO        = o(0000007)     /* RWX mask for other */
-val LIBSSH2_SFTP_S_IROTH        = o(0000004)     /* R for other */
-val LIBSSH2_SFTP_S_IWOTH        = o(0000002)     /* W for other */
-val LIBSSH2_SFTP_S_IXOTH        = o(0000001)     /* X for other */
+val LIBSSH2_SFTP_S_IRWXO = o("0000007") /* RWX mask for other */
+val LIBSSH2_SFTP_S_IROTH = o("0000004") /* R for other */
+val LIBSSH2_SFTP_S_IWOTH = o("0000002") /* W for other */
+val LIBSSH2_SFTP_S_IXOTH = o("0000001") /* X for other */
 
 def permissions(path: String): Int =
   val info = stackalloc[stat]()
@@ -55,11 +55,19 @@ def permissions(path: String): Int =
   Zone(implicit z => stat(toCString(path), info))
   info._13.toInt & 0x1ff
 
+case class Stat(flags: Long, size: Long, uid: Long, gid: Long, permissions: Long, atime: Long, mtime: Long)
+
 implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal:
   def isNull: Boolean = ptr == null
   def mkdir(path: String, mode: Int): Int =
     Zone(implicit z => lib.libssh2_sftp_mkdir_ex(ptr, toCString(path), path.length.toUInt, mode.toULong))
   def shutdown: Int = lib.libssh2_sftp_shutdown(ptr)
+  def fstat: Stat =
+    val attrs = stackalloc[lib.attributes_t]()
+
+    lib.libssh2_sftp_fstat_ex(ptr, attrs, 0)
+    Stat(attrs._1, attrs._2, attrs._3, attrs._4, attrs._5, attrs._6, attrs._7)
+end SFTP
 
 implicit class Session(val sessionptr: lib.session_tp) extends AnyVal:
   def isNull: Boolean = sessionptr == null
@@ -155,7 +163,7 @@ implicit class Channel(val channelptr: lib.channel_tp) extends AnyVal:
     Zone(implicit z =>
       lib.libssh2_channel_process_startup(channelptr, c"exec", 4.toUInt, toCString(command), command.length.toUInt),
     )
-  def read(limit: Int = Int.MaxValue)/*(session: Session, sock: Int)*/: Option[ArraySeq[Byte]] =
+  def read(limit: Int = Int.MaxValue) /*(session: Session, sock: Int)*/: Option[ArraySeq[Byte]] =
     val buf = new ArrayBuffer[Byte]
 
 //    @tailrec

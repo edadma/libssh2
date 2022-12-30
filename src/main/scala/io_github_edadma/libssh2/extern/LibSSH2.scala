@@ -22,6 +22,16 @@ object LibSSH2:
   type _1024 = Digit4[_1, _0, _2, _4]
   type struct_stat_t = CArray[Byte, _1024]
   type struct_stat_tp = Ptr[struct_stat_t]
+  type attributes_t = CStruct7[
+    CUnsignedLong, // flags
+    CUnsignedLong, // filesize
+    CUnsignedLong, // uid
+    CUnsignedLong, // gid
+    CUnsignedLong, // permissions
+    CUnsignedLong, // atime
+    CUnsignedLong, // mtime
+  ]
+  type attributes_tp = Ptr[attributes_t]
 
   def libssh2_init(flags: CInt): CInt = extern // 530
   def libssh2_exit(): Unit = extern // 537
@@ -121,3 +131,4 @@ object LibSSH2:
   def libssh2_channel_wait_eof(channel: channel_tp): CInt = extern // 911
   def libssh2_channel_wait_closed(channel: channel_tp): CInt = extern // 913
   def libssh2_scp_recv2(session: session_tp, path: CString, sb: Ptr[struct_stat_t]): channel_tp = extern // 921
+  def libssh2_sftp_fstat_ex(handle: sftp_tp, attrs: attributes_tp, setstat: CInt): CInt = extern // 268
