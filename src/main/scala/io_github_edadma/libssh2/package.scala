@@ -57,6 +57,36 @@ def permissions(path: String): Int =
 
 case class Stat(flags: Long, size: Long, uid: Long, gid: Long, permissions: Long, atime: Long, mtime: Long)
 
+/*
+LIBSSH2_SFTP_S_ISLNK
+
+Test for a symbolic link
+
+LIBSSH2_SFTP_S_ISREG
+
+Test for a regular file
+
+LIBSSH2_SFTP_S_ISDIR
+
+Test for a directory
+
+LIBSSH2_SFTP_S_ISCHR
+
+Test for a character special file
+
+LIBSSH2_SFTP_S_ISBLK
+
+Test for a block special file
+
+LIBSSH2_SFTP_S_ISFIFO
+
+Test for a pipe or FIFO special file
+
+LIBSSH2_SFTP_S_ISSOCK
+
+Test for a socket
+ */
+
 implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal:
   def isNull: Boolean = ptr == null
   def mkdir(path: String, mode: Int): Int =
