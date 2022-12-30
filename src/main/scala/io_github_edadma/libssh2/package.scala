@@ -1,4 +1,4 @@
-package io.github.edadma.libssh2
+package io_github_edadma.libssh2
 
 import extern.LibSSH2 as lib
 

@@ -1,6 +1,6 @@
-package io.github.edadma.libssh2.extern
+package io_github_edadma.libssh2.extern
 
-import io.github.edadma.libssh2.extern.LibSSH2.session_tp
+import LibSSH2.session_tp
 
 import scala.scalanative.unsafe.*, Nat.*
 import scala.scalanative.unsafe.Tag.Digit3

@@ -1,19 +1,19 @@
-package io.github.edadma.libssh2
+package io_github_edadma.libssh2
+
+import io_github_edadma.libssh2.KnownHostFile
 
 import java.nio.file.{Files, Paths}
 
-@main def scp_write(args: String*): Unit =
+@main def scp(args: String*): Unit =
   var hostname = "127.0.0.1"
   var username = "testuser"
   var password = "easypassword"
-  var localfile = "build.sbt"
-  var scppath = "/tmp/TEST"
+  var scppath = "/etc/passwd"
 
   if args.nonEmpty then hostname = args(0)
   if args.length > 1 then username = args(1)
   if args.length > 2 then password = args(2)
-  if args.length > 3 then localfile = args(3)
-  if args.length > 4 then scppath = args(4)
+  if args.length > 3 then scppath = args(3)
 
   var rc = init(0)
 
@@ -21,8 +21,6 @@ import java.nio.file.{Files, Paths}
     Console.err.println(s"libssh2 initialization failed ($rc)")
     sys.exit(1)
 
-  val data = Files.readAllBytes(Paths.get(localfile)).toIndexedSeq
-  val perm = permissions(localfile)
   val sock =
     connectPort22(hostname) match
       case -1 =>
@@ -32,7 +30,7 @@ import java.nio.file.{Files, Paths}
 
   val session = sessionInit
 
-  def shutdown(status: Int): Unit =
+  def shutdown(status: Int): Nothing =
     session.disconnect("Normal Shutdown, Thank you for playing")
     session.free()
     scala.scalanative.posix.unistd.close(sock)
@@ -97,7 +95,7 @@ import java.nio.file.{Files, Paths}
     Console.err.println("Authentication by public key failed")
     shutdown(1)
 
-  val channel = session.scpSend(scppath, perm, data.length)
+  val (channel, size) = session.scpRecv2(scppath)
 
   if channel.isNull then
     val (err, errmsg) = session.lastError
@@ -105,18 +103,13 @@ import java.nio.file.{Files, Paths}
     Console.err.println(s"Unable to open a session: ($err) $errmsg")
     shutdown(1)
 
-  Console.err.println("SCP session waiting to send file")
-  rc = channel.write(data)
+  Console.err.println("SCP session receiving file")
 
-  if rc < 0 then
-    Console.err.println(s"Error writing data: $rc")
+  val data = channel.read(size) getOrElse {
+    Console.err.println(s"Error reading data: $rc")
     shutdown(1)
+  }
 
-  Console.err.println("Sending EOF")
-  channel.sendEof
-  Console.err.println("Waiting for EOF")
-  channel.waitEof
-  Console.err.println("Waiting for channel to close")
-  channel.waitClosed
+  Console.err.println(new String(data.toArray))
   channel.free
   shutdown(0)

@@ -1,6 +1,6 @@
 name := "libssh2"
 
-version := "0.0.3"
+version := "0.0.4"
 
 versionScheme := Some("early-semver")
 
@@ -23,7 +23,7 @@ scalacOptions ++= Seq(
   "-language:existentials",
 )
 
-organization := "io.github.edadma"
+organization := "io_github_edadma"
 
 githubOwner := "edadma"
 

@@ -1,4 +1,6 @@
-package io.github.edadma.libssh2
+package io_github_edadma.libssh2
+
+import io_github_edadma.libssh2.{Channel, KnownHostFile}
 
 @main def ssh2_exec(args: String*): Unit =
   var hostname = "127.0.0.1"

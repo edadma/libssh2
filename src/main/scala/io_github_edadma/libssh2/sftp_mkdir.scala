@@ -1,4 +1,6 @@
-package io.github.edadma.libssh2
+package io_github_edadma.libssh2
+
+import io_github_edadma.libssh2.KnownHostFile
 
 @main def sftp_mkdir(args: String*): Unit =
   var hostname = "127.0.0.1"

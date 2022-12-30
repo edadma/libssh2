@@ -1,4 +1,4 @@
-package io.github.edadma.libssh2
+package io_github_edadma.libssh2
 
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
