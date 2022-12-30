@@ -87,7 +87,7 @@ LIBSSH2_SFTP_S_ISSOCK
 Test for a socket
  */
 
-implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal:
+implicit class SFTP(val ptr: lib.sftpSession_tp) extends AnyVal:
   def isNull: Boolean = ptr == null
   def mkdir(path: String, mode: Int): Int =
     Zone(implicit z => lib.libssh2_sftp_mkdir_ex(ptr, toCString(path), path.length.toUInt, mode.toULong))
@@ -96,7 +96,15 @@ implicit class SFTP(val ptr: lib.sftp_tp) extends AnyVal:
     val attrs = stackalloc[lib.attributes_t]()
 
     lib.libssh2_sftp_fstat_ex(ptr, attrs, 0)
-    Stat(attrs._1, attrs._2, attrs._3, attrs._4, attrs._5, attrs._6, attrs._7)
+    Stat(
+      attrs._1.toLong,
+      attrs._2.toLong,
+      attrs._3.toLong,
+      attrs._4.toLong,
+      attrs._5.toLong,
+      attrs._6.toLong,
+      attrs._7.toLong,
+    )
 end SFTP
 
 implicit class Session(val sessionptr: lib.session_tp) extends AnyVal:

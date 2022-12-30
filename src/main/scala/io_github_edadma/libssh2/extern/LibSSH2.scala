@@ -17,8 +17,8 @@ object LibSSH2:
   type knownhost_tp = Ptr[knownhost_t]
   type channel_t = CStruct0
   type channel_tp = Ptr[channel_t]
-  type sftp_t = CStruct0
-  type sftp_tp = Ptr[sftp_t]
+  type sftpSession_t = CStruct0
+  type sftpSession_tp = Ptr[sftpSession_t]
   type _1024 = Digit4[_1, _0, _2, _4]
   type struct_stat_t = CArray[Byte, _1024]
   type struct_stat_tp = Ptr[struct_stat_t]
@@ -121,14 +121,14 @@ object LibSSH2:
       mtime: CLong,
       atime: CLong,
   ): channel_tp = extern // 924
-  def libssh2_sftp_init(session: session_tp): sftp_tp = extern // 221
-  def libssh2_sftp_mkdir_ex(sftp: sftp_tp, path: CString, path_len: CUnsignedInt, mode: CUnsignedLongInt): CInt =
+  def libssh2_sftp_init(session: session_tp): sftpSession_tp = extern // 221
+  def libssh2_sftp_mkdir_ex(sftp: sftpSession_tp, path: CString, path_len: CUnsignedInt, mode: CUnsignedLongInt): CInt =
     extern // 304
-  def libssh2_sftp_shutdown(sftp: sftp_tp): CInt = extern // 222
+  def libssh2_sftp_shutdown(sftp: sftpSession_tp): CInt = extern // 222
   def libssh2_channel_write_ex(channel: channel_tp, stream_id: CInt, buf: Ptr[Byte], buflen: CSize): CSSize =
     extern // 846
   def libssh2_channel_send_eof(channel: channel_tp): CInt = extern // 909
   def libssh2_channel_wait_eof(channel: channel_tp): CInt = extern // 911
   def libssh2_channel_wait_closed(channel: channel_tp): CInt = extern // 913
   def libssh2_scp_recv2(session: session_tp, path: CString, sb: Ptr[struct_stat_t]): channel_tp = extern // 921
-  def libssh2_sftp_fstat_ex(handle: sftp_tp, attrs: attributes_tp, setstat: CInt): CInt = extern // 268
+  def libssh2_sftp_fstat_ex(handle: sftpSession_tp, attrs: attributes_tp, setstat: CInt): CInt = extern // 268
