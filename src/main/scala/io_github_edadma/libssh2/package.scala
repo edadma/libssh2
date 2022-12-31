@@ -82,18 +82,22 @@ implicit class SFTP(val sftp: lib.sftpSession_tp) extends AnyVal:
   def mkdir(path: String, mode: Int): Int =
     Zone(implicit z => lib.libssh2_sftp_mkdir_ex(sftp, toCString(path), path.length.toUInt, mode.toULong))
   def shutdown: Int = lib.libssh2_sftp_shutdown(sftp)
-  def stat(path: String): Stat =
+  def stat(path: String): (Int, Stat) =
     val attrs = stackalloc[lib.attributes_t]()
+    val rc =
+      Zone(implicit z => lib.libssh2_sftp_stat_ex(sftp, toCString(path), path.length.toUInt, LIBSSH2_SFTP_STAT, attrs))
 
-    Zone(implicit z => lib.libssh2_sftp_stat_ex(sftp, toCString(path), path.length.toUInt, LIBSSH2_SFTP_STAT, attrs))
-    Stat(
-      attrs._1.toLong,
-      attrs._2.toLong,
-      attrs._3.toLong,
-      attrs._4.toLong,
-      attrs._5.toLong,
-      attrs._6.toLong,
-      attrs._7.toLong,
+    (
+      rc,
+      Stat(
+        attrs._1.toLong,
+        attrs._2.toLong,
+        attrs._3.toLong,
+        attrs._4.toLong,
+        attrs._5.toLong,
+        attrs._6.toLong,
+        attrs._7.toLong,
+      ),
     )
   end stat
 end SFTP
