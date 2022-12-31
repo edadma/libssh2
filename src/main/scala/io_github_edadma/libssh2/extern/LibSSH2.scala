@@ -134,3 +134,10 @@ object LibSSH2:
   def libssh2_channel_wait_closed(channel: channel_tp): CInt = extern // 913
   def libssh2_scp_recv2(session: session_tp, path: CString, sb: Ptr[struct_stat_t]): channel_tp = extern // 921
   def libssh2_sftp_fstat_ex(handle: sftpSession_tp, attrs: attributes_tp, setstat: CInt): CInt = extern // 268
+  def libssh2_sftp_stat_ex(
+      sftp: sftpSession_tp,
+      path: CString,
+      path_len: CUnsignedInt,
+      stat_type: CInt,
+      attrs: attributes_tp,
+  ): CInt = extern // 316

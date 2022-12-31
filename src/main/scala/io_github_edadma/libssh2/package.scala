@@ -30,7 +30,22 @@ val LIBSSH2_KNOWNHOST_CHECK_MISMATCH = 1
 val LIBSSH2_KNOWNHOST_CHECK_NOTFOUND = 2
 val LIBSSH2_KNOWNHOST_CHECK_FAILURE = 3
 
+/* Flags for stat_ex() */
+val LIBSSH2_SFTP_STAT = 0
+val LIBSSH2_SFTP_LSTAT = 1
+val LIBSSH2_SFTP_SETSTAT = 2
+
 private def o(n: String): Int = Integer.parseInt(n, 8)
+
+/* File type */
+val LIBSSH2_SFTP_S_IFMT = o("0170000") /* type of file mask */
+val LIBSSH2_SFTP_S_IFIFO = o("0010000") /* named pipe (fifo) */
+val LIBSSH2_SFTP_S_IFCHR = o("0020000") /* character special */
+val LIBSSH2_SFTP_S_IFDIR = o("0040000") /* directory */
+val LIBSSH2_SFTP_S_IFBLK = o("0060000") /* block special */
+val LIBSSH2_SFTP_S_IFREG = o("0100000") /* regular */
+val LIBSSH2_SFTP_S_IFLNK = o("0120000") /* symbolic link */
+val LIBSSH2_SFTP_S_IFSOCK = o("0140000") /* socket */
 
 /* File mode */
 /* Read, write, execute/search by owner */
@@ -55,43 +70,32 @@ def permissions(path: String): Int =
   Zone(implicit z => stat(toCString(path), info))
   info._13.toInt & 0x1ff
 
-case class Stat(flags: Long, size: Long, uid: Long, gid: Long, permissions: Long, atime: Long, mtime: Long)
+case class Stat(flags: Long, size: Long, uid: Long, gid: Long, permissions: Long, atime: Long, mtime: Long):
+  private def is(flag: Int): Boolean = (permissions & LIBSSH2_SFTP_S_IFMT) == flag
 
-/*
-LIBSSH2_SFTP_S_ISLNK
+  def isRegularFile: Boolean = is(LIBSSH2_SFTP_S_IFREG)
+  def isDirectory: Boolean = is(LIBSSH2_SFTP_S_IFDIR)
+  def mode: Int = permissions.toInt & 0x1ff
 
-Test for a symbolic link
-
-LIBSSH2_SFTP_S_ISREG
-
-Test for a regular file
-
-LIBSSH2_SFTP_S_ISDIR
-
-Test for a directory
-
-LIBSSH2_SFTP_S_ISCHR
-
-Test for a character special file
-
-LIBSSH2_SFTP_S_ISBLK
-
-Test for a block special file
-
-LIBSSH2_SFTP_S_ISFIFO
-
-Test for a pipe or FIFO special file
-
-LIBSSH2_SFTP_S_ISSOCK
-
-Test for a socket
- */
-
-implicit class SFTP(val ptr: lib.sftpSession_tp) extends AnyVal:
-  def isNull: Boolean = ptr == null
+implicit class SFTP(val sftp: lib.sftpSession_tp) extends AnyVal:
+  def isNull: Boolean = sftp == null
   def mkdir(path: String, mode: Int): Int =
-    Zone(implicit z => lib.libssh2_sftp_mkdir_ex(ptr, toCString(path), path.length.toUInt, mode.toULong))
-  def shutdown: Int = lib.libssh2_sftp_shutdown(ptr)
+    Zone(implicit z => lib.libssh2_sftp_mkdir_ex(sftp, toCString(path), path.length.toUInt, mode.toULong))
+  def shutdown: Int = lib.libssh2_sftp_shutdown(sftp)
+  def stat(path: String): Stat =
+    val attrs = stackalloc[lib.attributes_t]()
+
+    Zone(implicit z => lib.libssh2_sftp_stat_ex(sftp, toCString(path), path.length.toUInt, LIBSSH2_SFTP_STAT, attrs))
+    Stat(
+      attrs._1.toLong,
+      attrs._2.toLong,
+      attrs._3.toLong,
+      attrs._4.toLong,
+      attrs._5.toLong,
+      attrs._6.toLong,
+      attrs._7.toLong,
+    )
+  end stat
 end SFTP
 
 implicit class SFTPHandle(val ptr: lib.sftpHandle_tp) extends AnyVal:
