@@ -64,6 +64,11 @@ val LIBSSH2_SFTP_S_IROTH = o("0000004") /* R for other */
 val LIBSSH2_SFTP_S_IWOTH = o("0000002") /* W for other */
 val LIBSSH2_SFTP_S_IXOTH = o("0000001") /* X for other */
 
+/* Flags for symlink_ex() */
+val LIBSSH2_SFTP_SYMLINK = 0
+val LIBSSH2_SFTP_READLINK = 1
+val LIBSSH2_SFTP_REALPATH = 2
+
 def permissions(path: String): Int =
   val info = stackalloc[stat]()
 
@@ -100,6 +105,17 @@ implicit class SFTP(val sftp: lib.sftpSession_tp) extends AnyVal:
       ),
     )
   end stat
+  def symlink(path: String, target: String): Int =
+    Zone(implicit z =>
+      lib.libssh2_sftp_symlink_ex(
+        sftp,
+        toCString(path),
+        path.length.toUInt,
+        toCString(target),
+        target.length.toUInt,
+        LIBSSH2_SFTP_SYMLINK,
+      ),
+    )
 end SFTP
 
 implicit class SFTPHandle(val ptr: lib.sftpHandle_tp) extends AnyVal:
@@ -315,3 +331,4 @@ object KnownHostFile {
 def init(flags: Int): Int = lib.libssh2_init(flags)
 def exit(): Unit = lib.libssh2_exit()
 def sessionInit: Session = lib.libssh2_session_init_ex(null, null, null, null)
+def version(required_version: Int): String = fromCString(lib.libssh2_version(required_version))

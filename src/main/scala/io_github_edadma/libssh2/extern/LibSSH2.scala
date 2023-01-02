@@ -141,3 +141,12 @@ object LibSSH2:
       stat_type: CInt,
       attrs: attributes_tp,
   ): CInt = extern // 316
+  def libssh2_version(required_version: CInt): CString = extern
+  def libssh2_sftp_symlink_ex(
+      sftp: sftpSession_tp,
+      path: CString,
+      path_len: CUnsignedInt,
+      target: CString,
+      target_len: CUnsignedInt,
+      link_type: CInt,
+  ): CInt = extern
